@@ -1,0 +1,45 @@
+# Datasets — too large for git, never commit raw or prepared data.
+# This is the real protection since your data lives on D: outside the
+# repo entirely - the generic /data/ line below is just a fallback in
+# case a local /data folder is ever created inside the repo itself.
+D:/DATASETS/
+/data/
+
+# NOTE: manifest.csv and labels.csv are small, useful metadata (not raw
+# data) - do NOT blanket-ignore *.csv. If you ever copy one into the
+# repo (e.g. into /docs for reference), it should be tracked normally.
+
+# Trained model weights — too large for a normal git push (GitHub's
+# 100MB per-file limit will just reject these); share via drive link
+# or Git LFS instead if you truly need them versioned
+*.mat
+
+# MATLAB autosave / temp files
+*.asv
+*.m~
+slprj/
+*.slxc
+*.autosave
+
+# Simulink cache/build artifacts
+*.slx.original
+*.mdl.original
+*.mexw64
+*.mexw32
+*.mexa64
+*.mexmaci64
+
+# MATLAB Compiler build output (regenerate, don't commit)
+/build/
+/for_redistribution/
+/for_redistribution_files_only/
+/for_testing/
+
+# OS/editor junk
+.DS_Store
+Thumbs.db
+.vscode/
+*.swp
+
+# Logs
+*.log
