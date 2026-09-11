@@ -59,10 +59,11 @@ function pipelineServer()
     % State
     lastAnalysis = [];
 
-    % Main event loop (listening to stdin)
+    % Main event loop (listening to stdin in compiled standalone mode)
     while true
-        rawLine = fgetl(0);
-        if ~ischar(rawLine)
+        try
+            rawLine = input('', 's');
+        catch
             % EOF detected (parent process closed stdin / exited)
             break;
         end
@@ -240,8 +241,7 @@ end
 
 function sendJson(s)
     str = jsonencode(s);
-    fprintf('%s\n', str);
-    fflush(1);
+    fprintf(1, '%s\n', str);
 end
 
 function sendProgress(id, stage, pct)

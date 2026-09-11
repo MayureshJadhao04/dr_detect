@@ -5,14 +5,17 @@ const assert = require('assert');
 const repoRoot = path.resolve(__dirname, '..');
 const scriptPath = path.join(repoRoot, 'models', 'pipelineServer.m').replace(/\\/g, '/');
 
-console.log('--- Starting MATLAB Daemon Protocol Test ---');
-console.log('Target script:', scriptPath);
+const fs = require('fs');
+const exePath = path.join(repoRoot, 'dr_backend.exe');
+const useExe = fs.existsSync(exePath);
 
-// Launch MATLAB daemon
-const proc = spawn('matlab', ['-batch', `run('${scriptPath}');`], {
-  cwd: repoRoot,
-  stdio: ['pipe', 'pipe', 'pipe'],
-});
+console.log('--- Starting MATLAB Daemon Protocol Test ---');
+console.log('Target:', useExe ? exePath : scriptPath);
+
+// Launch daemon: compiled exe vs matlab fallback
+const proc = useExe 
+  ? spawn(exePath, [], { cwd: repoRoot, stdio: ['pipe', 'pipe', 'pipe'] })
+  : spawn('matlab', ['-batch', `run('${scriptPath}');`], { cwd: repoRoot, stdio: ['pipe', 'pipe', 'pipe'] });
 
 let isReady = false;
 let testStep = 0;
