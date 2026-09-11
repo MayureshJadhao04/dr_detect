@@ -1,0 +1,16 @@
+{
+  "patientID": "P0003",
+  "timestamp": "20260911_140737",
+  "rightEye": {
+    "grade": 3,
+    "confidence": 0.495491623878479,
+    "referral": "REFER"
+  },
+  "leftEye": {
+    "grade": 2,
+    "confidence": 0.4227621853351593,
+    "referral": "REFER"
+  },
+  "reportPath": "D:\\Projects\\dr-screening\\patient_data\\P0003\\visits\\20260911_140737\\report.pdf",
+  "synced": false
+}
