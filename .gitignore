@@ -54,3 +54,4 @@ dr_backend.exe
 # Local runtime & test storage
 /patient_data/
 /temp/
+/DR_Detect_Distribution_Bundle/
