@@ -93,14 +93,22 @@ All UI components reside in `desktop/src/components/` and are fully operational:
 
 ---
 
-## 6. Immediate Next Step: Compilation into Standalone Executable
+## 6. Standalone Executable & Installer (Completed)
 
-1. **Compile MATLAB Backend**:
-   - Run `compile_backend.m` in MATLAB:
+1. **MATLAB Backend (`dr_backend.exe`)**:
+   - Compiled via native MATLAB Compiler (`mcc`):
      ```matlab
      mcc -m models/pipelineServer.m -a models -a functions -o dr_backend -d dist_backend -v
      ```
-   - Copies generated `dr_backend.exe` to repo root (`D:\Projects\dr-screening\dr_backend.exe`).
-2. **Package Desktop Electron App**:
-   - Ensure `electron-builder` includes `dr_backend.exe` and `models/` in `extraResources`.
-   - Run `npm run build:exe` inside `desktop/` to generate the standalone Windows installer.
+   - Standard input reading uses `input('', 's')` (immune to Windows Runtime descriptor bugs, zero JVM requirement).
+   - Standard output uses unbuffered `fprintf(1, '%s\n', str)`.
+   - Verified end-to-end with real fundus image inputs: Model 1 tile/stitch segmentation, Model 2 ResNet-101 grading, Grad-CAM generation, and disk heatmap export all exit 0 in <15s.
+
+2. **Standalone Windows Desktop Installer**:
+   - Built via `electron-builder` in `desktop/`:
+     ```powershell
+     npm run build:exe
+     ```
+   - **Artifact**: `desktop/dist_electron/DR-Detect-1.0.0-x64.exe` (713 MB).
+   - **Architecture**: `dr_backend.exe` sits unpacked inside `resources/` (`extraResources`), allowing direct parent-to-child stdio process execution outside `.asar`.
+   - **Data Directory**: Points to `app.getPath('userData')/patient_data` (`%APPDATA%`), fully writable without administrative elevation.
