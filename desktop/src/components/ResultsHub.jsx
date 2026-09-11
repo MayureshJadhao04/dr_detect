@@ -1,18 +1,16 @@
 import React, { useState } from 'react';
-import { 
-  AlertTriangle, 
-  CheckCircle2, 
-  FileText, 
-  Download, 
-  Sliders, 
-  Eye, 
-  ExternalLink,
+import {
+  AlertTriangle,
+  CheckCircle2,
+  FileText,
+  Download,
+  Sliders,
   ShieldAlert,
   FolderOpen
 } from 'lucide-react';
 
 export default function ResultsHub({ resultData, onSaveVisit, isSaving, saveResult, onOpenPath }) {
-  const [blendOD, setBlendOD] = useState(0.5); // 0 = raw, 1 = heatmap
+  const [blendOD, setBlendOD] = useState(0.5);
   const [blendOS, setBlendOS] = useState(0.5);
 
   if (!resultData) return null;
@@ -21,52 +19,48 @@ export default function ResultsHub({ resultData, onSaveVisit, isSaving, saveResu
 
   const getGradeColor = (grade) => {
     switch (grade) {
-      case 0: return '#10b981'; // Emerald
-      case 1: return '#0284c7'; // Blue
-      case 2: return '#f59e0b'; // Amber
-      case 3: return '#ea580c'; // Orange
-      case 4: return '#e11d48'; // Crimson
+      case 0: return '#10b981';
+      case 1: return '#0284c7';
+      case 2: return '#d97706';
+      case 3: return '#ea580c';
+      case 4: return '#dc2626';
       default: return '#94a3b8';
+    }
+  };
+
+  const getGradeBg = (grade) => {
+    switch (grade) {
+      case 0: return { bg: '#f0fdf4', border: '#bbf7d0' };
+      case 1: return { bg: '#f0f9ff', border: '#bae6fd' };
+      case 2: return { bg: '#fefce8', border: '#fef08a' };
+      case 3: return { bg: '#fff7ed', border: '#fed7aa' };
+      case 4: return { bg: '#fef2f2', border: '#fecaca' };
+      default: return { bg: '#f8fafc', border: '#e2e8f0' };
     }
   };
 
   const renderRadialGauge = (grade, confidence) => {
     const color = getGradeColor(grade);
-    const radius = 38;
-    const strokeWidth = 7;
+    const radius = 36;
+    const strokeWidth = 6;
     const circumference = 2 * Math.PI * radius;
-    // Map grade 0-4 to 0-100% of circle
     const progressPct = ((grade + 1) / 5) * 100;
     const strokeDashoffset = circumference - (progressPct / 100) * circumference;
 
     return (
-      <div style={{ position: 'relative', width: '96px', height: '96px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-        <svg width="96" height="96" viewBox="0 0 96 96" style={{ transform: 'rotate(-90deg)' }}>
-          {/* Background circle */}
+      <div style={{ position: 'relative', width: '88px', height: '88px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <svg width="88" height="88" viewBox="0 0 88 88" style={{ transform: 'rotate(-90deg)' }}>
+          <circle cx="44" cy="44" r={radius} fill="transparent" stroke="#e2e8f0" strokeWidth={strokeWidth} />
           <circle
-            cx="48"
-            cy="48"
-            r={radius}
-            fill="transparent"
-            stroke="rgba(30, 48, 86, 0.5)"
-            strokeWidth={strokeWidth}
-          />
-          {/* Arc */}
-          <circle
-            cx="48"
-            cy="48"
-            r={radius}
-            fill="transparent"
-            stroke={color}
-            strokeWidth={strokeWidth}
-            strokeDasharray={circumference}
-            strokeDashoffset={strokeDashoffset}
+            cx="44" cy="44" r={radius} fill="transparent"
+            stroke={color} strokeWidth={strokeWidth}
+            strokeDasharray={circumference} strokeDashoffset={strokeDashoffset}
             strokeLinecap="round"
             style={{ transition: 'stroke-dashoffset 0.8s ease' }}
           />
         </svg>
         <div style={{ position: 'absolute', textAlign: 'center' }}>
-          <div style={{ fontSize: '20px', fontWeight: 800, color: '#f8fafc', lineHeight: 1 }}>
+          <div style={{ fontSize: '18px', fontWeight: 800, color: color, lineHeight: 1 }}>
             L{grade}
           </div>
           <div style={{ fontSize: '10px', color: 'var(--text-muted)', marginTop: '2px', fontWeight: 600 }}>
@@ -79,25 +73,38 @@ export default function ResultsHub({ resultData, onSaveVisit, isSaving, saveResu
 
   const renderEyePanel = (title, eye, blend, setBlend) => {
     const color = getGradeColor(eye.predictedGrade);
-    const rawSrc = eye.rawPath ? (eye.rawPath.startsWith('http') ? eye.rawPath : `media://${encodeURIComponent(eye.rawPath)}`) : '';
-    const heatSrc = eye.heatmapPath ? (eye.heatmapPath.startsWith('http') ? eye.heatmapPath : `media://${encodeURIComponent(eye.heatmapPath)}`) : '';
+    const gradeBg = getGradeBg(eye.predictedGrade);
+    const rawSrc = eye.rawPath ? (eye.rawPath.startsWith('http') || eye.rawPath.startsWith('blob:') ? eye.rawPath : `media://${encodeURIComponent(eye.rawPath)}`) : '';
+    const heatSrc = eye.heatmapPath ? (eye.heatmapPath.startsWith('http') || eye.heatmapPath.startsWith('blob:') ? eye.heatmapPath : `media://${encodeURIComponent(eye.heatmapPath)}`) : '';
+
+    const isOD = title.includes('OD');
 
     return (
-      <div className="glass-panel" style={{ padding: '20px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
+      <div className="ui-card" style={{ padding: '18px 20px', display: 'flex', flexDirection: 'column', gap: '14px' }}>
         {/* Header */}
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: '1px solid var(--border-card)', paddingBottom: '12px' }}>
-          <div>
-            <h3 style={{ fontSize: '15px', fontWeight: 700, color: '#f8fafc' }}>
-              {title}
-            </h3>
-            <span style={{ fontSize: '11px', color: 'var(--text-muted)' }}>
-              Quality: {eye.quality || 'Good'}
-            </span>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: '1px solid var(--border-color)', paddingBottom: '10px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <span style={{
+              width: '10px',
+              height: '10px',
+              borderRadius: '50%',
+              backgroundColor: isOD ? '#4f5ef7' : '#525c6a',
+              display: 'inline-block',
+              flexShrink: 0
+            }} />
+            <div>
+              <h3 style={{ fontSize: '14px', fontWeight: 700, color: 'var(--text-main)' }}>
+                {title}
+              </h3>
+              <span style={{ fontSize: '11px', color: 'var(--text-muted)' }}>
+                Quality: {eye.quality || 'Good'}
+              </span>
+            </div>
           </div>
           <span style={{
-            background: `${color}22`,
+            background: `${color}15`,
             color: color,
-            border: `1px solid ${color}66`,
+            border: `1px solid ${color}40`,
             borderRadius: '20px',
             padding: '3px 10px',
             fontSize: '11px',
@@ -107,53 +114,64 @@ export default function ResultsHub({ resultData, onSaveVisit, isSaving, saveResu
           </span>
         </div>
 
-        {/* Severity Metrics */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '18px', background: 'rgba(11, 19, 38, 0.5)', padding: '12px', borderRadius: '10px' }}>
+        {/* Severity Gauge + Grade Label */}
+        <div style={{
+          display: 'flex',
+          alignItems: 'center',
+          gap: '16px',
+          background: gradeBg.bg,
+          border: `1px solid ${gradeBg.border}`,
+          padding: '14px',
+          borderRadius: '10px'
+        }}>
           {renderRadialGauge(eye.predictedGrade, eye.confidence)}
           <div>
-            <div style={{ fontSize: '15px', fontWeight: 800, color: color }}>
+            <div style={{ fontSize: '14px', fontWeight: 800, color: color }}>
               {eye.gradeLabel}
             </div>
-            <div style={{ fontSize: '11px', color: 'var(--text-secondary)', marginTop: '4px' }}>
-              Model 2 Softmax Confidence: <strong>{eye.confidence}%</strong>
+            <div style={{ fontSize: '11px', color: 'var(--text-muted)', marginTop: '4px' }}>
+              Model 2 Softmax Confidence: <strong style={{ color: 'var(--text-main)' }}>{eye.confidence}%</strong>
             </div>
           </div>
         </div>
 
-        {/* Lesions Detected */}
+        {/* Lesion Tags */}
         <div>
           <span style={{ fontSize: '11px', fontWeight: 600, color: 'var(--text-muted)', display: 'block', marginBottom: '6px' }}>
             Detected Biomarkers / Lesions:
           </span>
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
             {eye.lesionText && eye.lesionText.length > 0 ? (
-              eye.lesionText.map((lesion, idx) => (
-                <span
-                  key={idx}
-                  style={{
-                    background: lesion.toLowerCase().includes('no significant') ? 'rgba(16, 185, 129, 0.15)' : 'rgba(239, 68, 68, 0.15)',
-                    color: lesion.toLowerCase().includes('no significant') ? '#34d399' : '#f87171',
-                    border: `1px solid ${lesion.toLowerCase().includes('no significant') ? 'rgba(16, 185, 129, 0.3)' : 'rgba(239, 68, 68, 0.3)'}`,
-                    borderRadius: '6px',
-                    padding: '3px 8px',
-                    fontSize: '11px',
-                    fontWeight: 600
-                  }}
-                >
-                  {lesion}
-                </span>
-              ))
+              eye.lesionText.map((lesion, idx) => {
+                const isNormal = lesion.toLowerCase().includes('no significant') || lesion.toLowerCase().includes('none');
+                return (
+                  <span
+                    key={idx}
+                    style={{
+                      background: isNormal ? '#f0fdf4' : '#fef2f2',
+                      color: isNormal ? '#16a34a' : '#dc2626',
+                      border: `1px solid ${isNormal ? '#bbf7d0' : '#fecaca'}`,
+                      borderRadius: '6px',
+                      padding: '3px 8px',
+                      fontSize: '11px',
+                      fontWeight: 600
+                    }}
+                  >
+                    {lesion}
+                  </span>
+                );
+              })
             ) : (
               <span style={{ fontSize: '11px', color: 'var(--text-muted)' }}>No lesion tags available</span>
             )}
           </div>
         </div>
 
-        {/* Interactive Grad-CAM Heatmap Blending */}
+        {/* Grad-CAM Heatmap Blending */}
         <div>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '6px' }}>
             <span style={{ fontSize: '11px', fontWeight: 600, color: 'var(--text-secondary)', display: 'flex', alignItems: 'center', gap: '4px' }}>
-              <Sliders size={13} color="var(--accent-cyan)" />
+              <Sliders size={13} color="var(--accent-blue)" />
               Grad-CAM Attention Overlay
             </span>
             <span style={{ fontSize: '11px', color: 'var(--text-muted)', fontFamily: 'var(--font-mono)' }}>
@@ -163,56 +181,45 @@ export default function ResultsHub({ resultData, onSaveVisit, isSaving, saveResu
 
           <input
             type="range"
-            min="0"
-            max="1"
-            step="0.02"
+            min="0" max="1" step="0.02"
             value={blend}
             onChange={(e) => setBlend(parseFloat(e.target.value))}
-            style={{ width: '100%', marginBottom: '10px', accentColor: 'var(--accent-cyan)' }}
+            style={{ width: '100%', marginBottom: '8px', accentColor: 'var(--accent-blue)' }}
           />
 
           {/* Layered Image Container */}
           <div style={{
             position: 'relative',
             width: '100%',
-            height: '220px',
+            height: '200px',
             borderRadius: '8px',
             overflow: 'hidden',
             background: '#000',
-            border: '1px solid var(--border-card)',
+            border: '1px solid var(--border-color)',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center'
           }}>
-            {/* Raw fundus image */}
             {rawSrc && (
               <img
                 src={rawSrc}
                 alt="Raw Fundus"
-                style={{
-                  position: 'absolute',
-                  width: '100%',
-                  height: '100%',
-                  objectFit: 'contain'
-                }}
+                style={{ position: 'absolute', width: '100%', height: '100%', objectFit: 'contain' }}
               />
             )}
-            {/* Grad-CAM heatmap overlay */}
             {heatSrc && (
               <img
                 src={heatSrc}
                 alt="Grad-CAM"
                 style={{
-                  position: 'absolute',
-                  width: '100%',
-                  height: '100%',
-                  objectFit: 'contain',
-                  opacity: blend,
-                  mixBlendMode: 'screen',
-                  pointerEvents: 'none',
+                  position: 'absolute', width: '100%', height: '100%', objectFit: 'contain',
+                  opacity: blend, mixBlendMode: 'screen', pointerEvents: 'none',
                   transition: 'opacity 0.05s ease'
                 }}
               />
+            )}
+            {!rawSrc && !heatSrc && (
+              <span style={{ fontSize: '12px', color: '#64748b' }}>Heatmap images will appear after engine analysis</span>
             )}
           </div>
         </div>
@@ -221,78 +228,60 @@ export default function ResultsHub({ resultData, onSaveVisit, isSaving, saveResu
   };
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '18px' }}>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
       {/* Referral Decision Banner */}
-      <div style={{
-        background: isReferable ? 'linear-gradient(90deg, rgba(225, 29, 72, 0.25) 0%, rgba(225, 29, 72, 0.05) 100%)' : 'linear-gradient(90deg, rgba(16, 185, 129, 0.25) 0%, rgba(16, 185, 129, 0.05) 100%)',
-        border: `1px solid ${isReferable ? 'rgba(225, 29, 72, 0.5)' : 'rgba(16, 185, 129, 0.5)'}`,
-        borderRadius: '12px',
+      <div className="ui-card" style={{
         padding: '16px 20px',
+        background: isReferable ? '#fef2f2' : '#f0fdf4',
+        border: `1px solid ${isReferable ? '#fecaca' : '#bbf7d0'}`,
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'space-between'
       }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
           <div style={{
-            width: '40px',
-            height: '40px',
-            borderRadius: '10px',
-            background: isReferable ? 'rgba(225, 29, 72, 0.3)' : 'rgba(16, 185, 129, 0.3)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center'
+            width: '38px', height: '38px', borderRadius: '10px',
+            background: isReferable ? '#fee2e2' : '#dcfce7',
+            display: 'flex', alignItems: 'center', justifyContent: 'center'
           }}>
-            {isReferable ? <ShieldAlert size={22} color="#f43f5e" /> : <CheckCircle2 size={22} color="#10b981" />}
+            {isReferable ? <ShieldAlert size={20} color="#dc2626" /> : <CheckCircle2 size={20} color="#16a34a" />}
           </div>
           <div>
-            <div style={{ fontSize: '16px', fontWeight: 800, color: isReferable ? '#fda4af' : '#6ee7b7' }}>
+            <div style={{ fontSize: '15px', fontWeight: 800, color: isReferable ? '#991b1b' : '#166534' }}>
               {overallReferral}
             </div>
-            <div style={{ fontSize: '12px', color: 'var(--text-secondary)', marginTop: '2px' }}>
-              {isReferable 
-                ? 'Action: Patient exhibits referable diabetic retinopathy. Schedule specialist consultation.' 
-                : 'Action: No immediate sight-threatening lesions detected. Routine 12-month follow-up.'}
+            <div style={{ fontSize: '12px', color: isReferable ? '#b91c1c' : '#15803d', marginTop: '1px' }}>
+              {isReferable
+                ? 'Patient exhibits referable DR. Schedule specialist consultation.'
+                : 'No sight-threatening lesions. Routine 12-month follow-up.'}
             </div>
           </div>
         </div>
 
-        {/* Save & Export Button */}
+        {/* Save & Export */}
         <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
           {saveResult ? (
             <div style={{ display: 'flex', gap: '8px' }}>
-              <button
-                className="btn btn-secondary"
-                onClick={() => onOpenPath(saveResult.pdfPath)}
-                style={{ fontSize: '13px' }}
-              >
-                <FileText size={16} color="#38bdf8" />
-                View A4 PDF Report
+              <button className="btn btn-outline" onClick={() => onOpenPath(saveResult.pdfPath)} style={{ fontSize: '12px' }}>
+                <FileText size={14} color="#2563eb" />
+                View PDF
               </button>
-              <button
-                className="btn btn-secondary"
-                onClick={() => onOpenPath(saveResult.visitPath)}
-                style={{ fontSize: '13px' }}
-              >
-                <FolderOpen size={16} />
-                Open Visit Folder
+              <button className="btn btn-outline" onClick={() => onOpenPath(saveResult.visitPath)} style={{ fontSize: '12px' }}>
+                <FolderOpen size={14} />
+                Open Folder
               </button>
             </div>
           ) : (
-            <button
-              className="btn btn-emerald"
-              onClick={onSaveVisit}
-              disabled={isSaving}
-              style={{ fontSize: '13px' }}
-            >
-              <Download size={16} />
-              {isSaving ? 'Generating PDF...' : 'Save & Export Clinical PDF'}
+            <button className="btn btn-emerald" onClick={onSaveVisit} disabled={isSaving} style={{ fontSize: '12.5px' }}>
+              <Download size={15} />
+              {isSaving ? 'Generating...' : 'Save & Export PDF'}
             </button>
           )}
         </div>
       </div>
 
       {/* Bilateral Comparison Columns */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '18px' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
         {renderEyePanel('Right Eye (OD)', rightEye, blendOD, setBlendOD)}
         {renderEyePanel('Left Eye (OS)', leftEye, blendOS, setBlendOS)}
       </div>

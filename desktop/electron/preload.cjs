@@ -4,6 +4,7 @@ contextBridge.exposeInMainWorld('api', {
   runPipeline: (params) => ipcRenderer.invoke('run-pipeline', params),
   savePatientVisit: (params) => ipcRenderer.invoke('save-visit', params),
   restartEngine: () => ipcRenderer.invoke('restart-engine'),
+  stopPipeline: () => ipcRenderer.invoke('stop-pipeline'),
   selectFile: () => ipcRenderer.invoke('select-file'),
   getEngineStatus: () => ipcRenderer.invoke('get-engine-status'),
   openPath: (filePath) => ipcRenderer.invoke('open-path', filePath),

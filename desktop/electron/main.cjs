@@ -96,6 +96,14 @@ ipcMain.handle('restart-engine', async () => {
   return { success: false };
 });
 
+ipcMain.handle('stop-pipeline', async () => {
+  if (daemon) {
+    daemon.restart();
+    return { success: true };
+  }
+  return { success: false };
+});
+
 ipcMain.handle('get-engine-status', async () => {
   if (!daemon) return { state: 'STOPPED', isReady: false };
   return { state: daemon.state, isReady: daemon.isReady };

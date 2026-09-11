@@ -8,6 +8,7 @@
     "dev": "vite",
     "build": "vite build",
     "electron:dev": "concurrently -k \"vite\" \"wait-on tcp:5173 && electron .\"",
+    "build:exe": "npm run build && electron-builder",
     "lint": "oxlint",
     "preview": "vite preview"
   },
