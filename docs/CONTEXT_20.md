@@ -13,7 +13,7 @@ The frontend desktop application has been completely built, verified, redesigned
 - **Stack**:
   - **AI / Pipeline**: MATLAB R2026a, NVIDIA GPU, Model 1 (DeepLabv3+ lesion segmentation), Model 2 (ResNet-101 ICDR 0–4 severity grading), Grad-CAM heatmaps.
   - **Desktop App**: Electron 44 + React 19 + Vite 8 + Lucide React.
-  - **Local IPC / Backend**: `models/pipelineServer.m` daemon with JSON IPC managed by `desktop/electron/daemonManager.cjs`.
+  - **Local IPC / Backend**: `models/pipelineServer.m` stdio JSON-IPC daemon (pure stdin/stdout, newline-delimited, zero ports/listening sockets, immune to firewall blocks) supervised by `desktop/electron/daemonManager.cjs`.
 - **Repo Root**: `D:\Projects\dr-screening\`
 
 ---
@@ -23,8 +23,11 @@ The frontend desktop application has been completely built, verified, redesigned
 - **Model 1**: `models/model1_final.mat` (DeepLabv3+ segmentation for microaneurysms, hemorrhages, hard/soft exudates).
 - **Model 2**: `models/model2_final_weighted.mat` (ResNet-101 fusion classifier for ICDR 0–4 severity grading).
 - **Explainability**: `models/generateGradCAM.m`, `generateGradCAMForImage.m`.
-- **Backend Daemon**: `models/pipelineServer.m` running on localhost port 5000 with endpoints `/health`, `/analyze`, `/save_visit`, `/patient_history`.
-- **Reporting Engine**: `models/generatePatientReport.m`, `renderPatientReportPDF.m` generating portrait A4 clinical PDF reports with 300 DPI target and exact physical millimeter geometry.
+- **Backend Daemon Protocol**: `models/pipelineServer.m` communicates via stdin/stdout:
+  - Inbound: `{"id":"...","action":"analyze|save|ping|set_config|exit",...}\n`
+  - Outbound: `{"id":"...","event":"ready|progress|analysis_complete|saved|pong|error",...}\n`
+  - Error Contract: Structured shape `{"id":"...","event":"error","code":"...","message":"...","remedy":"..."}`.
+- **Reporting & Storage**: `models/generatePatientReport.m`, `renderPatientReportPDF.m`, `savePatientVisit.m`. Uses pure local offline file store (`patient_data/<patientID>/visits/<timestamp>/`), no external database engine required.
 
 ---
 

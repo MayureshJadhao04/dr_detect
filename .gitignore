@@ -43,3 +43,14 @@ Thumbs.db
 
 # Logs
 *.log
+
+# Compiled Binaries & Build Outputs
+*.exe
+/dist_backend/
+/desktop/dist/
+/desktop/dist_electron/
+dr_backend.exe
+
+# Local runtime & test storage
+/patient_data/
+/temp/
