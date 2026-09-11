@@ -40,13 +40,17 @@ function createWindow() {
 }
 
 function initDaemon() {
-  const repoRoot = path.resolve(__dirname, '..', '..');
+  const isPackaged = app.isPackaged;
+  const repoRoot = isPackaged ? process.resourcesPath : path.resolve(__dirname, '..', '..');
+  const exePath = isPackaged
+    ? path.join(process.resourcesPath, 'dr_backend.exe')
+    : path.join(repoRoot, 'dr_backend.exe');
   const dataDir = path.join(app.getPath('userData'), 'patient_data');
 
   daemon = new DaemonManager({
     repoRoot,
     dataDir,
-    exePath: path.join(repoRoot, 'dr_backend.exe'),
+    exePath,
   });
 
   daemon.on('status', (data) => {
