@@ -1,67 +1,101 @@
-# Function contracts
+# Function Contracts — Pipeline & Server API
 
-Fixed input/output signatures for every pipeline function. Update this
-file FIRST if a signature needs to change — don't let implementations
-drift silently, especially when generating code with an AI assistant
-across multiple sessions. The stub-function section below is now
-optional — it was for parallel UI/pipeline development across two
-people; since you're building both solo, you can wire the UI directly
-to your real functions as you finish each one.
+## 1. MATLAB Daemon IPC Interface (`models/pipelineServer.m`)
 
-| Function | Inputs | Outputs | Purpose |
-|---|---|---|---|
-| `enhanceImage(img)` | `img` (RGB image matrix, original) | `enhancedImg` (RGB image matrix) | CLAHE + denoise + illumination norm — runs on EVERY image, not just borderline ones. Original `img` is kept separately — never overwritten — since the report shows both. This runs FIRST, before quality check. |
-| `qualityCheck(enhancedImg)` | `enhancedImg` (RGB image matrix, post-enhancement) | `isGradable` (logical), `blurScore` (double), `illumScore` (double) | Reject/accept image — runs on the ENHANCED image, after `enhanceImage`. |
-| `findOpticDisc(img)` | `img` (RGB or grayscale) | `center` ([x,y]), `radius` (double) | Locate optic disc, classical CV |
-| `findFovea(img, discCenter, discRadius)` | `img`, `discCenter`, `discRadius` | `foveaCenter` ([x,y]) | Locate fovea from disc geometry |
-| `runModel1Segmentation(img, model1)` | `img`, `model1` (loaded U-Net) | `masks` (struct with fields: `vessels`, `darkLesions`, `lightLesions`, `proliferative` — each a binary/probability mask same size as `img`) | Model 1 inference, all 4 channels in one call |
-| `gradeSeverity(img, model2)` | `img`, `model2` (loaded ResNet50) | `grade` (int 0–4), `confidence` (double 0–1) | Model 2 inference |
-| `runGradCAM(img, model2, grade)` | `img`, `model2`, `grade` | `heatmap` (same size as `img`) | Explainability overlay for Model 2 |
-| `isReferable(grade)` | `grade` (int) | `referable` (logical) | grade >= 2 → true |
-| `routeForReview(referable, patientId)` | `referable` (logical), `patientId` (string) | `routingStatus` (string: `"none"` / `"queued_for_review"`) | Telemedicine routing stage — sets status, does not need real network transmission for the demo |
-| `exportReport(originalImg, enhancedImg, masks, grade, confidence, heatmap, routingStatus, path)` | all result fields, output `path` | writes PDF, returns `success` (logical) | Final report — shows both image versions and both models' outputs together, so a doctor sees why the grade was given |
+The server reads newline-delimited JSON messages from `stdin` and emits response messages to `stdout`.
 
-## Conventions
-- All images: `uint8` RGB unless explicitly stated as grayscale/binary.
-- All masks: logical/probability images, same height/width as input image.
-- `masks` struct fields are always present, even if a channel found
-  nothing — in that case the mask is all-zero, not omitted.
-- All scores/confidences: `double`, range 0–1 (grade is an integer 0–4,
-  not normalized).
-- No function reads/writes global state — everything passes through
-  arguments and return values.
-- Model files (`.mat`) are loaded once at app startup, passed into
-  inference functions as arguments — not reloaded per call.
-
-## Stub functions (for parallel UI development)
-For every function above, a stub exists in `/stubs` with the same name
-and signature but hardcoded return values. Example:
-
-```matlab
-function enhancedImg = enhanceImage(img)
-    enhancedImg = img; % stub just passes through unchanged
-end
-
-function [isGradable, blurScore, illumScore] = qualityCheck(enhancedImg)
-    isGradable = true;
-    blurScore = 0.2;
-    illumScore = 0.8;
-end
-
-function [grade, confidence] = gradeSeverity(img, model2)
-    grade = 3;
-    confidence = 0.91;
-end
-
-function masks = runModel1Segmentation(img, model1)
-    sz = size(img, [1 2]);
-    masks.vessels = false(sz);
-    masks.darkLesions = false(sz);
-    masks.lightLesions = false(sz);
-    masks.proliferative = false(sz);
-end
+### `analyze` Request
+```json
+{
+  "id": "req-101",
+  "action": "analyze",
+  "leftImage": "D:\\images\\left.jpg",
+  "rightImage": "D:\\images\\right.jpg",
+  "patientInfo": {
+    "patientID": "P-10248",
+    "name": "Ramesh Kumar",
+    "age": 54,
+    "sex": "Male",
+    "diabetesDuration": 8
+  }
+}
 ```
 
-Stubs are deleted and replaced with real implementations at integration
-time — filenames and signatures must match exactly, or integration
-breaks.
+### `analysis_complete` Response
+```json
+{
+  "id": "req-101",
+  "event": "analysis_complete",
+  "result": {
+    "rightEye": {
+      "predictedGrade": 2,
+      "gradeLabel": "Moderate NPDR",
+      "confidence": 0.924,
+      "referral": true,
+      "quality": { "isGradable": true, "blurScore": 0.12, "illumScore": 0.88 },
+      "detectedLesions": ["Microaneurysms", "Hard Exudates"],
+      "heatmap": "...",
+      "maskProb": "..."
+    },
+    "leftEye": {
+      "predictedGrade": 3,
+      "gradeLabel": "Severe NPDR",
+      "confidence": 0.941,
+      "referral": true,
+      "quality": { "isGradable": true, "blurScore": 0.10, "illumScore": 0.89 },
+      "detectedLesions": ["Hemorrhages", "Cotton Wool Spots"],
+      "heatmap": "...",
+      "maskProb": "..."
+    }
+  }
+}
+```
+
+### `save` Request
+```json
+{
+  "id": "req-102",
+  "action": "save",
+  "analysisData": { ... },
+  "patientInfo": { ... }
+}
+```
+
+### `saved` Response
+```json
+{
+  "id": "req-102",
+  "event": "saved",
+  "visitDir": "D:\\Projects\\dr-screening\\patient_data\\P-10248\\visits\\20260917_103000",
+  "pdfPath": "D:\\Projects\\dr-screening\\patient_data\\P-10248\\visits\\20260917_103000\\report.pdf"
+}
+```
+
+---
+
+## 2. Core MATLAB Function Signatures
+
+| Function | Signature | Purpose |
+|---|---|---|
+| `analyzePatientVisit` | `analysis = analyzePatientVisit(net1, net2, leftImgPath, rightImgPath, patientInfo)` | Executes bilateral quality checks, enhancement, DeepLabv3+ segmentation, ResNet-101 grading, and Grad-CAM generation. |
+| `renderPatientReportPDF` | `renderPatientReportPDF(analysis, patientInfo, outPdfPath)` | Compiles bilateral images, heatmaps, lesion metrics, and clinician signature fields into standard A4 vector PDF and companion PNG. |
+| `savePatientVisit` | `[savedDir, pdfPath] = savePatientVisit(analysis, patientInfo, baseDir)` | Persists structured JSON, segmented binary masks, Grad-CAM overlays, and PDF into local offline store. |
+| `enhanceImage` | `enhancedImg = enhanceImage(img)` | Mandatory camera-normalization via CLAHE, bilateral filtering, and color balance. |
+| `qualityCheck` | `[isGradable, blurScore, illumScore] = qualityCheck(img)` | Computes Laplacian variance blur index and illumination histogram uniformity. |
+| `findOpticDisc` | `[center, radius] = findOpticDisc(img)` | Locates brightest circular optic nerve head via morphological segmentation. |
+| `findFovea` | `foveaCenter = findFovea(img, discCenter, discRadius)` | Projects anatomical macular coordinate based on temporal-inferior offset. |
+| `generateGradCAM` | `heatmap = generateGradCAM(net, img, classIdx)` | Backpropagates class gradients to last conv layer, rendering jet-colormap attention heatmap. |
+
+---
+
+## 3. Electron IPC Bridge Contracts (`window.api`)
+
+Exposed via `desktop/electron/preload.cjs` with context isolation:
+
+- `window.api.runScreening(leftPath, rightPath, patientInfo)`: Returns `Promise<analysisResult>`.
+- `window.api.stopPipeline()`: Sends abort signal to daemon.
+- `window.api.savePatientVisit(analysisData, patientInfo)`: Returns `Promise<{ visitDir, pdfPath }>`.
+- `window.api.getPatientHistory(patientID)`: Returns `Promise<Array<Visit>>`.
+- `window.api.openPath(targetPath)`: Opens file or folder in Windows native shell.
+- `window.api.selectFile()`: Opens native file picker dialog for fundus images.
+- `window.api.getDaemonStatus()`: Returns `Promise<{ status, gpuAvailable, uptime }>`.

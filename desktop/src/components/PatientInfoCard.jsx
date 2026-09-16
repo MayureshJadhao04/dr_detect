@@ -14,22 +14,22 @@ export default function PatientInfoCard({ patientInfo, setPatientInfo }) {
   return (
     <div className="ui-card" style={{ padding: '18px 24px' }}>
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '14px' }}>
-        <h2 style={{ fontSize: '15px', fontWeight: 800, color: 'var(--text-main)' }}>
+        <h2 style={{ fontSize: '15px', fontWeight: 800, color: '#17253D' }}>
           Patient Information
         </h2>
         <button
           className="btn btn-outline"
           onClick={() => setIsEditing(!isEditing)}
-          style={{ padding: '6px 14px', fontSize: '12px', borderRadius: '6px' }}
+          style={{ padding: '6px 14px', fontSize: '12px', borderRadius: '8px' }}
         >
           {isEditing ? (
             <>
-              <Check size={14} color="#16a34a" />
+              <Check size={14} color="#28A88A" />
               Done Editing
             </>
           ) : (
             <>
-              <SquarePen size={14} color="#334155" />
+              <SquarePen size={14} color="#60708A" />
               Edit Patient Details
             </>
           )}
@@ -43,7 +43,7 @@ export default function PatientInfoCard({ patientInfo, setPatientInfo }) {
       }}>
         {/* Patient ID */}
         <div>
-          <div style={{ fontSize: '11.5px', color: 'var(--text-muted)', marginBottom: '4px', fontWeight: 500 }}>
+          <div style={{ fontSize: '11.5px', color: '#8A98AC', marginBottom: '4px', fontWeight: 500 }}>
             Patient ID
           </div>
           {isEditing ? (
@@ -55,7 +55,7 @@ export default function PatientInfoCard({ patientInfo, setPatientInfo }) {
               style={{ width: '100%' }}
             />
           ) : (
-            <div style={{ fontSize: '14px', fontWeight: 700, color: patientInfo.patientID ? 'var(--text-main)' : 'var(--text-light)' }}>
+            <div style={{ fontSize: '14px', fontWeight: 700, color: patientInfo.patientID ? '#17253D' : '#8A98AC' }}>
               {patientInfo.patientID || '—'}
             </div>
           )}
@@ -63,7 +63,7 @@ export default function PatientInfoCard({ patientInfo, setPatientInfo }) {
 
         {/* Full Name */}
         <div>
-          <div style={{ fontSize: '11.5px', color: 'var(--text-muted)', marginBottom: '4px', fontWeight: 500 }}>
+          <div style={{ fontSize: '11.5px', color: '#8A98AC', marginBottom: '4px', fontWeight: 500 }}>
             Full Name
           </div>
           {isEditing ? (
@@ -75,7 +75,7 @@ export default function PatientInfoCard({ patientInfo, setPatientInfo }) {
               style={{ width: '100%' }}
             />
           ) : (
-            <div style={{ fontSize: '14px', fontWeight: 700, color: patientInfo.name ? 'var(--text-main)' : 'var(--text-light)' }}>
+            <div style={{ fontSize: '14px', fontWeight: 700, color: patientInfo.name ? '#17253D' : '#8A98AC' }}>
               {patientInfo.name || '—'}
             </div>
           )}
@@ -83,7 +83,7 @@ export default function PatientInfoCard({ patientInfo, setPatientInfo }) {
 
         {/* Age */}
         <div>
-          <div style={{ fontSize: '11.5px', color: 'var(--text-muted)', marginBottom: '4px', fontWeight: 500 }}>
+          <div style={{ fontSize: '11.5px', color: '#8A98AC', marginBottom: '4px', fontWeight: 500 }}>
             Age
           </div>
           {isEditing ? (
@@ -95,7 +95,7 @@ export default function PatientInfoCard({ patientInfo, setPatientInfo }) {
               style={{ width: '100%' }}
             />
           ) : (
-            <div style={{ fontSize: '14px', fontWeight: 700, color: patientInfo.age ? 'var(--text-main)' : 'var(--text-light)' }}>
+            <div style={{ fontSize: '14px', fontWeight: 700, color: patientInfo.age ? '#17253D' : '#8A98AC' }}>
               {patientInfo.age || '—'}
             </div>
           )}
@@ -103,7 +103,7 @@ export default function PatientInfoCard({ patientInfo, setPatientInfo }) {
 
         {/* Gender */}
         <div>
-          <div style={{ fontSize: '11.5px', color: 'var(--text-muted)', marginBottom: '4px', fontWeight: 500 }}>
+          <div style={{ fontSize: '11.5px', color: '#8A98AC', marginBottom: '4px', fontWeight: 500 }}>
             Gender
           </div>
           {isEditing ? (
@@ -119,7 +119,7 @@ export default function PatientInfoCard({ patientInfo, setPatientInfo }) {
               <option value="Other">Other</option>
             </select>
           ) : (
-            <div style={{ fontSize: '14px', fontWeight: 700, color: patientInfo.sex ? 'var(--text-main)' : 'var(--text-light)' }}>
+            <div style={{ fontSize: '14px', fontWeight: 700, color: patientInfo.sex ? '#17253D' : '#8A98AC' }}>
               {patientInfo.sex || '—'}
             </div>
           )}
@@ -127,7 +127,7 @@ export default function PatientInfoCard({ patientInfo, setPatientInfo }) {
 
         {/* Diabetes Duration */}
         <div>
-          <div style={{ fontSize: '11.5px', color: 'var(--text-muted)', marginBottom: '4px', fontWeight: 500 }}>
+          <div style={{ fontSize: '11.5px', color: '#8A98AC', marginBottom: '4px', fontWeight: 500 }}>
             Diabetes Duration (years)
           </div>
           {isEditing ? (
@@ -139,7 +139,7 @@ export default function PatientInfoCard({ patientInfo, setPatientInfo }) {
               style={{ width: '100%' }}
             />
           ) : (
-            <div style={{ fontSize: '14px', fontWeight: 700, color: patientInfo.diabetesDuration ? 'var(--text-main)' : 'var(--text-light)' }}>
+            <div style={{ fontSize: '14px', fontWeight: 700, color: patientInfo.diabetesDuration ? '#17253D' : '#8A98AC' }}>
               {patientInfo.diabetesDuration || '—'}
             </div>
           )}

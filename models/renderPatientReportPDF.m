@@ -95,9 +95,9 @@ text(bgAx, ML, ty(0.138), 'Automated analysis to support clinical decision-makin
 line(bgAx, [ML MR], [ty(0.155) ty(0.155)], 'Color', ltgray, 'LineWidth', 1);
 
 %% ---- Patient Information ----
-text(bgAx, ML, ty(0.172), 'Patient Information', 'FontSize', 13, 'FontWeight', 'bold', 'Color', navy);
+text(bgAx, ML, ty(0.160), 'Patient Information', 'FontSize', 12, 'FontWeight', 'bold', 'Color', navy);
 
-rectangle(bgAx, 'Position', [ML, ty(0.238), MR-ML, 0.238-0.183], ...
+rectangle(bgAx, 'Position', [ML, ty(0.220), MR-ML, 0.220-0.170], ...
     'FaceColor', tblhdr, 'EdgeColor', ltgray, 'LineWidth', 0.75);
 
 fields = {'Name', 'Patient ID', 'Age', 'Sex', 'Diabetes Duration'};
@@ -108,19 +108,19 @@ colX  = ML + [0, 0.195, 0.370, 0.500, 0.635];
 divX  = ML + [0.180, 0.355, 0.480, 0.610];
 
 for i = 1:5
-    text(bgAx, colX(i), ty(0.198), fields{i}, 'FontSize', 9, 'Color', gray);
-    text(bgAx, colX(i), ty(0.222), values{i}, 'FontSize', 11, 'FontWeight', 'bold', 'Color', navy);
+    text(bgAx, colX(i), ty(0.183), fields{i}, 'FontSize', 8.5, 'Color', gray);
+    text(bgAx, colX(i), ty(0.205), values{i}, 'FontSize', 10.5, 'FontWeight', 'bold', 'Color', navy);
 end
 for i = 1:numel(divX)
-    line(bgAx, [divX(i) divX(i)], [ty(0.190) ty(0.235)], 'Color', ltgray, 'LineWidth', 1);
+    line(bgAx, [divX(i) divX(i)], [ty(0.176) ty(0.216)], 'Color', ltgray, 'LineWidth', 1);
 end
 
-line(bgAx, [ML MR], [ty(0.250) ty(0.250)], 'Color', ltgray, 'LineWidth', 1);
+line(bgAx, [ML MR], [ty(0.230) ty(0.230)], 'Color', ltgray, 'LineWidth', 1);
 
 %% ---- Screening Result table ----
-text(bgAx, ML, ty(0.267), 'Screening Result', 'FontSize', 13, 'FontWeight', 'bold', 'Color', navy);
+text(bgAx, ML, ty(0.245), 'Screening Result', 'FontSize', 12, 'FontWeight', 'bold', 'Color', navy);
 
-tblTop = 0.288; rowH = 0.0355; nRows = 4;
+tblTop = 0.258; rowH = 0.027; nRows = 4;
 tblColX = ML + [0, 0.290, 0.590];
 tblColW = [0.290, 0.300, 0.300];
 tblRight = MR;
@@ -140,17 +140,17 @@ for r = 1:nRows
             halign = 'left'; if c > 1, halign = 'center'; end
             xpos = tblColX(c) + 0.010; if c > 1, xpos = tblColX(c) + tblColW(c)/2; end
             text(bgAx, xpos, ty(rowTopY + rowH*0.65), headerVals{c}, ...
-                'FontSize', 10, 'FontWeight', 'bold', 'Color', navy, ...
+                'FontSize', 9.5, 'FontWeight', 'bold', 'Color', navy, ...
                 'HorizontalAlignment', halign);
         end
     else
         ri = r - 1;
         text(bgAx, tblColX(1)+0.010, ty(rowTopY + rowH*0.65), rowLabels{ri}, ...
-            'FontSize', 10, 'FontWeight', 'bold', 'Color', navy);
+            'FontSize', 9.5, 'FontWeight', 'bold', 'Color', navy);
         text(bgAx, tblColX(2)+tblColW(2)/2, ty(rowTopY + rowH*0.65), rightVals{ri}, ...
-            'FontSize', 10, 'FontWeight', 'bold', 'Color', navy, 'HorizontalAlignment', 'center');
+            'FontSize', 9.5, 'FontWeight', 'bold', 'Color', navy, 'HorizontalAlignment', 'center');
         text(bgAx, tblColX(3)+tblColW(3)/2, ty(rowTopY + rowH*0.65), leftVals{ri}, ...
-            'FontSize', 10, 'FontWeight', 'bold', 'Color', navy, 'HorizontalAlignment', 'center');
+            'FontSize', 9.5, 'FontWeight', 'bold', 'Color', navy, 'HorizontalAlignment', 'center');
     end
     line(bgAx, [tblColX(1) tblRight], [ty(rowTopY) ty(rowTopY)], 'Color', ltgray, 'LineWidth', 0.75);
 end
@@ -164,11 +164,11 @@ rectangle(bgAx, 'Position', [tblColX(1), ty(tblTop+nRows*rowH), tblRight-tblColX
 tblBottom = tblTop + nRows*rowH;
 
 %% ---- Fundus Analysis ----
-text(bgAx, ML, ty(tblBottom + 0.018), 'Fundus Analysis', 'FontSize', 13, 'FontWeight', 'bold', 'Color', navy);
+text(bgAx, ML, ty(tblBottom + 0.016), 'Fundus Analysis', 'FontSize', 12, 'FontWeight', 'bold', 'Color', navy);
 
-eyeBoxTop = tblBottom + 0.034;
-eyeBoxH   = 0.255;
-gap       = 0.014;
+eyeBoxTop = tblBottom + 0.028;
+eyeBoxH   = 0.220;
+gap       = 0.010;
 
 renderEyeBox(fig, bgAx, eyeBoxTop, eyeBoxH, 'Right Eye', '(OD)', ...
     eR.imgResized224, eR.imgEnhanced, eR.heatmap, eR.imgRaw, eR.lesionText, eR.confidence, eR.quality, ...
@@ -178,29 +178,29 @@ renderEyeBox(fig, bgAx, eyeBoxTop + eyeBoxH + gap, eyeBoxH, 'Left Eye', '(OS)', 
     eL.imgResized224, eL.imgEnhanced, eL.heatmap, eL.imgRaw, eL.lesionText, eL.confidence, eL.quality, ...
     designAspect, navy, ltgray, gray, ML, MR);
 
-footerTop = eyeBoxTop + 2*eyeBoxH + gap + 0.020;
+footerTop = eyeBoxTop + 2*eyeBoxH + gap + 0.014;
 
 %% ---- Footer ----
 line(bgAx, [ML MR], [ty(footerTop) ty(footerTop)], 'Color', ltgray, 'LineWidth', 1);
 
-text(bgAx, ML, ty(footerTop+0.016), 'DR_Detect', 'FontSize', 13, 'FontWeight', 'bold', 'Color', navy, 'Interpreter', 'none');
-text(bgAx, ML, ty(footerTop+0.033), 'Version 1.0.0  |  ResNet101 (fine-tuned)', 'FontSize', 8.5, 'Color', gray);
-text(bgAx, ML, ty(footerTop+0.047), 'Trained on: IDRiD, APTOS2019', 'FontSize', 8.5, 'Color', gray);
+text(bgAx, ML, ty(footerTop+0.015), 'DR_Detect', 'FontSize', 12, 'FontWeight', 'bold', 'Color', navy, 'Interpreter', 'none');
+text(bgAx, ML, ty(footerTop+0.030), 'Version 1.0.0  |  ResNet101 (fine-tuned)', 'FontSize', 8, 'Color', gray);
+text(bgAx, ML, ty(footerTop+0.043), 'Trained on: IDRiD, APTOS2019', 'FontSize', 8, 'Color', gray);
 
-sigY = footerTop + 0.020;
+sigY = footerTop + 0.016;
 line(bgAx, [0.590 0.740], [ty(sigY) ty(sigY)], 'Color', 'k', 'LineWidth', 0.75);
 line(bgAx, [0.775 0.880], [ty(sigY) ty(sigY)], 'Color', 'k', 'LineWidth', 0.75);
-text(bgAx, 0.590, ty(sigY+0.014), "Clinician's Name & Signature", 'FontSize', 8, 'Color', gray);
-text(bgAx, 0.775, ty(sigY+0.014), 'Date', 'FontSize', 8, 'Color', gray);
+text(bgAx, 0.590, ty(sigY+0.013), "Clinician's Name & Signature", 'FontSize', 7.5, 'Color', gray);
+text(bgAx, 0.775, ty(sigY+0.013), 'Date', 'FontSize', 7.5, 'Color', gray);
 
-line(bgAx, [ML MR], [ty(footerTop+0.062) ty(footerTop+0.062)], 'Color', ltgray, 'LineWidth', 0.5);
-text(bgAx, ML, ty(footerTop+0.078), ['Report generated on: ' dateStr], 'FontSize', 8, 'Color', gray);
-text(bgAx, 0.400, ty(footerTop+0.078), ...
+line(bgAx, [ML MR], [ty(footerTop+0.054) ty(footerTop+0.054)], 'Color', ltgray, 'LineWidth', 0.5);
+text(bgAx, ML, ty(footerTop+0.068), ['Report generated on: ' dateStr], 'FontSize', 7.5, 'Color', gray);
+text(bgAx, 0.400, ty(footerTop+0.068), ...
     'This report is generated by an AI model and is intended to assist clinical decision-making.', ...
-    'FontSize', 7.5, 'Color', gray);
-text(bgAx, 0.400, ty(footerTop+0.090), ...
+    'FontSize', 7, 'Color', gray);
+text(bgAx, 0.400, ty(footerTop+0.079), ...
     'It should not replace the judgment of a qualified eye care professional.', ...
-    'FontSize', 7.5, 'Color', gray);
+    'FontSize', 7, 'Color', gray);
 
 %% ---- Save ----
 [outDir, outName, ~] = fileparts(outPdfPath);
@@ -208,6 +208,9 @@ if isempty(outDir), outDir = pwd; end
 pdfPath = fullfile(outDir, [outName '.pdf']);
 
 print(fig, pdfPath, '-dpdf', '-r300', '-bestfit');
+
+pngPath = fullfile(outDir, [outName '.png']);
+print(fig, pngPath, '-dpng', '-r150');
 
 close(fig);
 
@@ -223,23 +226,23 @@ ty = @(f) 1 - f;
 rectangle(bgAx, 'Position', [xLeft, ty(boxTop+boxH), xRight-xLeft, boxH], ...
     'EdgeColor', ltgray, 'LineWidth', 1);
 
-text(bgAx, xLeft+0.010, ty(boxTop+boxH*0.42), eyeLabel1, 'FontSize', 12, 'FontWeight', 'bold', 'Color', navy);
-text(bgAx, xLeft+0.010, ty(boxTop+boxH*0.42+0.022), eyeLabel2, 'FontSize', 12, 'FontWeight', 'bold', 'Color', navy);
+text(bgAx, xLeft+0.010, ty(boxTop+boxH*0.42), eyeLabel1, 'FontSize', 11, 'FontWeight', 'bold', 'Color', navy);
+text(bgAx, xLeft+0.010, ty(boxTop+boxH*0.42+0.020), eyeLabel2, 'FontSize', 11, 'FontWeight', 'bold', 'Color', navy);
 
 labelDivX = xLeft + 0.095;
-line(bgAx, [labelDivX labelDivX], [ty(boxTop+0.015) ty(boxTop+boxH-0.015)], 'Color', ltgray, 'LineWidth', 1);
+line(bgAx, [labelDivX labelDivX], [ty(boxTop+0.012) ty(boxTop+boxH-0.012)], 'Color', ltgray, 'LineWidth', 1);
 
-imgTop   = boxTop + 0.048;
-imgWFrac = 0.180;
+imgTop   = boxTop + 0.038;
+imgWFrac = 0.170;
 imgHFrac = imgWFrac * designAspect;
-imgGap   = 0.012;
-imgStartX = labelDivX + 0.020;
+imgGap   = 0.011;
+imgStartX = labelDivX + 0.018;
 
 capNames = {'Original', 'Enhanced', 'Grad-CAM'};
 for k = 1:3
     xk = imgStartX + (k-1)*(imgWFrac + imgGap);
-    text(bgAx, xk + imgWFrac/2, ty(imgTop - 0.008), capNames{k}, ...
-        'FontSize', 9.5, 'FontWeight', 'bold', 'Color', navy, 'HorizontalAlignment', 'center');
+    text(bgAx, xk + imgWFrac/2, ty(imgTop - 0.007), capNames{k}, ...
+        'FontSize', 9, 'FontWeight', 'bold', 'Color', navy, 'HorizontalAlignment', 'center');
 
     axImg = axes(fig, 'Units', 'normalized', ...
         'Position', [xk, 1-(imgTop+imgHFrac), imgWFrac, imgHFrac]);
@@ -261,26 +264,26 @@ for k = 1:3
 end
 
 sbDivX = imgStartX + 3*imgWFrac + 2*imgGap + 0.010;
-line(bgAx, [sbDivX sbDivX], [ty(boxTop+0.015) ty(boxTop+boxH-0.015)], 'Color', ltgray, 'LineWidth', 1);
+line(bgAx, [sbDivX sbDivX], [ty(boxTop+0.012) ty(boxTop+boxH-0.012)], 'Color', ltgray, 'LineWidth', 1);
 
-sbX = sbDivX + 0.015;
-text(bgAx, sbX, ty(boxTop+0.062), 'Detected lesions', 'FontSize', 9.5, 'FontWeight', 'bold', 'Color', navy);
+sbX = sbDivX + 0.014;
+text(bgAx, sbX, ty(boxTop+0.040), 'Detected lesions', 'FontSize', 9, 'FontWeight', 'bold', 'Color', navy);
 
 nLesionSlots = 4;
-lineSpacing = 0.0165;
+lineSpacing = 0.0135;
 for li = 1:min(numel(lesionText), nLesionSlots)
-    text(bgAx, sbX, ty(boxTop+0.080+(li-1)*lineSpacing), lesionText{li}, 'FontSize', 9, 'Color', navy);
+    text(bgAx, sbX, ty(boxTop+0.056+(li-1)*lineSpacing), lesionText{li}, 'FontSize', 8.5, 'Color', navy);
 end
-sidebarY1 = boxTop + 0.080 + nLesionSlots*lineSpacing;
+sidebarY1 = boxTop + 0.056 + nLesionSlots*lineSpacing + 0.002;
 
 line(bgAx, [sbX xRight-0.015], [ty(sidebarY1) ty(sidebarY1)], 'Color', ltgray, 'LineWidth', 0.75);
 
-text(bgAx, sbX, ty(sidebarY1+0.020), 'AI confidence', 'FontSize', 9.5, 'FontWeight', 'bold', 'Color', navy);
-text(bgAx, sbX, ty(sidebarY1+0.040), sprintf('%.0f%%', confidence*100), 'FontSize', 9, 'Color', navy);
-line(bgAx, [sbX xRight-0.015], [ty(sidebarY1+0.055) ty(sidebarY1+0.055)], 'Color', ltgray, 'LineWidth', 0.75);
+text(bgAx, sbX, ty(sidebarY1+0.018), 'AI confidence', 'FontSize', 9, 'FontWeight', 'bold', 'Color', navy);
+text(bgAx, sbX, ty(sidebarY1+0.035), sprintf('%.0f%%', confidence*100), 'FontSize', 8.5, 'Color', navy);
+line(bgAx, [sbX xRight-0.015], [ty(sidebarY1+0.048) ty(sidebarY1+0.048)], 'Color', ltgray, 'LineWidth', 0.75);
 
-text(bgAx, sbX, ty(sidebarY1+0.078), 'Image quality', 'FontSize', 9.5, 'FontWeight', 'bold', 'Color', navy);
-text(bgAx, sbX, ty(sidebarY1+0.098), iqText, 'FontSize', 9, 'Color', navy);
+text(bgAx, sbX, ty(sidebarY1+0.068), 'Image quality', 'FontSize', 9, 'FontWeight', 'bold', 'Color', navy);
+text(bgAx, sbX, ty(sidebarY1+0.085), iqText, 'FontSize', 8.5, 'Color', navy);
 
 end
 

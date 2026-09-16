@@ -73,9 +73,9 @@ const DEFAULT_RESPONSES = [
 ];
 
 const statusConfig = {
-  REVIEWED: { label: 'Reviewed', color: '#16a34a', bg: '#f0fdf4', border: '#bbf7d0', icon: CheckCircle2 },
-  PENDING: { label: 'Pending Review', color: '#d97706', bg: '#fefce8', border: '#fef08a', icon: Clock },
-  ACTION_REQUIRED: { label: 'Attention Required', color: '#dc2626', bg: '#fef2f2', border: '#fecaca', icon: AlertTriangle },
+  REVIEWED: { label: 'Reviewed', color: '#28A88A', bg: '#DDF5EE', border: '#bbf7d0', icon: CheckCircle2 },
+  PENDING: { label: 'Pending Review', color: '#E7A348', bg: '#FFF1DC', border: '#fed7aa', icon: Clock },
+  ACTION_REQUIRED: { label: 'Attention Required', color: '#D94750', bg: '#FCE1E3', border: '#F6C9CD', icon: AlertTriangle },
 };
 
 export default function DoctorResponsesView({ onOpenPath, responses: customResponses, onUpdateResponses }) {
@@ -140,10 +140,10 @@ export default function DoctorResponsesView({ onOpenPath, responses: customRespo
       {/* Summary Stat Cards */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '12px' }}>
         {[
-          { key: 'ALL', label: 'Total Sent', color: 'var(--accent-blue)', bg: '#eff6ff', border: '#bfdbfe' },
-          { key: 'REVIEWED', label: 'Reviewed', color: '#16a34a', bg: '#f0fdf4', border: '#bbf7d0' },
-          { key: 'PENDING', label: 'Pending', color: '#d97706', bg: '#fefce8', border: '#fef08a' },
-          { key: 'ACTION_REQUIRED', label: 'Attention Required (Grade 3/4)', color: '#dc2626', bg: '#fef2f2', border: '#fecaca' },
+          { key: 'ALL', label: 'Total Sent', color: '#315DAA', bg: '#E7EFFC', border: '#bae6fd' },
+          { key: 'REVIEWED', label: 'Reviewed', color: '#28A88A', bg: '#DDF5EE', border: '#bbf7d0' },
+          { key: 'PENDING', label: 'Pending', color: '#E7A348', bg: '#FFF1DC', border: '#fed7aa' },
+          { key: 'ACTION_REQUIRED', label: 'Attention Required (Grade 3/4)', color: '#EF5B63', bg: '#FCE1E3', border: '#F6C9CD' },
         ].map(s => (
           <button
             key={s.key}
@@ -152,8 +152,8 @@ export default function DoctorResponsesView({ onOpenPath, responses: customRespo
             style={{
               padding: '14px 18px',
               cursor: 'pointer',
-              border: filterStatus === s.key ? `2px solid ${s.color}` : '1px solid var(--border-color)',
-              background: filterStatus === s.key ? s.bg : 'var(--card-bg)',
+              border: filterStatus === s.key ? `2px solid ${s.color}` : '1px solid rgba(255, 255, 255, 0.70)',
+              background: filterStatus === s.key ? s.bg : '#F4F7FB',
               transition: 'all 0.15s ease',
               textAlign: 'left'
             }}
@@ -161,7 +161,7 @@ export default function DoctorResponsesView({ onOpenPath, responses: customRespo
             <div style={{ fontSize: '22px', fontWeight: 800, color: s.color }}>
               {counts[s.key]}
             </div>
-            <div style={{ fontSize: '12px', color: 'var(--text-muted)', fontWeight: 600, marginTop: '2px' }}>
+            <div style={{ fontSize: '12px', color: '#60708A', fontWeight: 600, marginTop: '2px' }}>
               {s.label}
             </div>
           </button>
@@ -173,41 +173,42 @@ export default function DoctorResponsesView({ onOpenPath, responses: customRespo
         {/* Search Bar */}
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '14px' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <MessageSquareText size={16} color="var(--accent-blue)" />
-            <h3 style={{ fontSize: '14px', fontWeight: 700, color: 'var(--text-main)' }}>
+            <MessageSquareText size={16} color="#315DAA" />
+            <h3 style={{ fontSize: '14px', fontWeight: 700, color: '#17253D' }}>
               Doctor Feedback & Annotations
             </h3>
           </div>
           <div style={{
             display: 'flex', alignItems: 'center', gap: '8px',
-            background: '#ffffff', border: '1px solid var(--border-color)',
-            borderRadius: '6px', padding: '6px 12px', width: '260px'
+            background: '#EEF3F9', border: '1px solid #E0E7F0',
+            boxShadow: 'var(--neu-inset)',
+            borderRadius: '10px', padding: '6px 12px', width: '260px'
           }}>
-            <Search size={14} color="#94a3b8" />
+            <Search size={14} color="#8A98AC" />
             <input
               type="text"
               placeholder="Search by Patient ID or Name"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               style={{
-                border: 'none', outline: 'none', fontSize: '12.5px', width: '100%',
-                fontFamily: 'var(--font-sans)', color: 'var(--text-main)'
+                border: 'none', background: 'transparent', outline: 'none', fontSize: '12.5px', width: '100%',
+                fontFamily: 'var(--font-sans)', color: '#17253D'
               }}
             />
           </div>
         </div>
 
         {/* Table */}
-        <div style={{ overflowX: 'auto' }}>
+        <div style={{ overflowX: 'auto', borderRadius: '10px', border: '1px solid #E0E7F0' }}>
           <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '13px' }}>
             <thead>
-              <tr style={{ background: '#f8fafc', color: '#64748b', textAlign: 'left', borderBottom: '1px solid var(--border-color)' }}>
-                <th style={{ padding: '10px 14px', fontWeight: 600 }}>Date Sent</th>
-                <th style={{ padding: '10px 14px', fontWeight: 600 }}>Patient</th>
-                <th style={{ padding: '10px 14px', fontWeight: 600 }}>OD / OS</th>
-                <th style={{ padding: '10px 14px', fontWeight: 600 }}>Status</th>
-                <th style={{ padding: '10px 14px', fontWeight: 600 }}>Reviewing Doctor</th>
-                <th style={{ padding: '10px 14px', fontWeight: 600, width: '40px' }}></th>
+              <tr style={{ background: '#F8FAFD', color: '#60708A', textAlign: 'left', borderBottom: '1px solid #E0E7F0' }}>
+                <th style={{ padding: '10px 14px', fontWeight: 700 }}>Date Sent</th>
+                <th style={{ padding: '10px 14px', fontWeight: 700 }}>Patient</th>
+                <th style={{ padding: '10px 14px', fontWeight: 700 }}>OD / OS</th>
+                <th style={{ padding: '10px 14px', fontWeight: 700 }}>Status</th>
+                <th style={{ padding: '10px 14px', fontWeight: 700 }}>Reviewing Doctor</th>
+                <th style={{ padding: '10px 14px', fontWeight: 700, width: '40px' }}></th>
               </tr>
             </thead>
             <tbody>
@@ -220,20 +221,21 @@ export default function DoctorResponsesView({ onOpenPath, responses: customRespo
                   <React.Fragment key={idx}>
                     <tr
                       style={{
-                        borderBottom: isExpanded ? 'none' : '1px solid var(--border-light)',
+                        borderBottom: isExpanded ? 'none' : '1px solid #E8EDF4',
+                        background: idx % 2 === 0 ? '#F4F7FB' : '#F8FAFD',
                         cursor: 'pointer',
-                        transition: 'background-color 0.1s ease'
+                        transition: 'background-color 0.12s ease'
                       }}
                       onClick={() => setExpandedId(isExpanded ? null : row.patientId + row.date)}
-                      onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#f8fafc'}
-                      onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
+                      onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#F1F5FA'}
+                      onMouseLeave={(e) => e.currentTarget.style.backgroundColor = idx % 2 === 0 ? '#F4F7FB' : '#F8FAFD'}
                     >
-                      <td style={{ padding: '12px 14px', color: '#475569' }}>{row.date}</td>
+                      <td style={{ padding: '12px 14px', color: '#60708A' }}>{row.date}</td>
                       <td style={{ padding: '12px 14px' }}>
-                        <div style={{ fontWeight: 600, color: 'var(--text-main)' }}>{row.patientName}</div>
-                        <div style={{ fontSize: '11px', color: 'var(--text-muted)' }}>{row.patientId} · {row.ageSex}</div>
+                        <div style={{ fontWeight: 700, color: '#17253D' }}>{row.patientName}</div>
+                        <div style={{ fontSize: '11px', color: '#60708A' }}>{row.patientId} · {row.ageSex}</div>
                       </td>
-                      <td style={{ padding: '12px 14px', color: 'var(--text-secondary)' }}>
+                      <td style={{ padding: '12px 14px', color: '#17253D', fontWeight: 600 }}>
                         {row.odGrade} / {row.osGrade}
                       </td>
                       <td style={{ padding: '12px 14px' }}>
@@ -252,8 +254,8 @@ export default function DoctorResponsesView({ onOpenPath, responses: customRespo
                             <span style={{
                               fontSize: '10px',
                               fontWeight: 700,
-                              color: '#b91c1c',
-                              background: '#fee2e2',
+                              color: '#D94750',
+                              background: '#FCE1E3',
                               padding: '1px 6px',
                               borderRadius: '4px'
                             }}>
@@ -262,13 +264,13 @@ export default function DoctorResponsesView({ onOpenPath, responses: customRespo
                           )}
                         </div>
                       </td>
-                      <td style={{ padding: '12px 14px', color: 'var(--text-main)', fontWeight: 500 }}>
+                      <td style={{ padding: '12px 14px', color: '#17253D', fontWeight: 500 }}>
                         {row.doctorName || '—'}
                       </td>
                       <td style={{ padding: '12px 14px', textAlign: 'center' }}>
                         <ChevronDown
                           size={16}
-                          color="#94a3b8"
+                          color="#60708A"
                           style={{
                             transition: 'transform 0.2s ease',
                             transform: isExpanded ? 'rotate(180deg)' : 'rotate(0)'
@@ -280,21 +282,21 @@ export default function DoctorResponsesView({ onOpenPath, responses: customRespo
                     {/* Expanded Doctor Notes */}
                     {isExpanded && (
                       <tr>
-                        <td colSpan="6" style={{ padding: '0 14px 14px', borderBottom: '1px solid var(--border-light)' }}>
+                        <td colSpan="6" style={{ padding: '0 14px 14px', borderBottom: '1px solid #E8EDF4' }}>
                           <div style={{
-                            background: row.status === 'ACTION_REQUIRED' ? '#fef2f2' : '#f8fafc',
-                            border: `1px solid ${row.status === 'ACTION_REQUIRED' ? '#fecaca' : 'var(--border-color)'}`,
+                            background: row.status === 'ACTION_REQUIRED' ? '#FCE1E3' : '#F8FAFD',
+                            border: `1px solid ${row.status === 'ACTION_REQUIRED' ? '#F6C9CD' : '#E0E7F0'}`,
                             borderRadius: '8px',
                             padding: '14px 18px'
                           }}>
                             {row.doctorNotes ? (
                               <>
-                                <div style={{ fontSize: '11px', color: 'var(--text-muted)', marginBottom: '6px', fontWeight: 600 }}>
+                                <div style={{ fontSize: '11px', color: '#60708A', marginBottom: '6px', fontWeight: 600 }}>
                                   Doctor's Notes · {row.reviewDate}
                                 </div>
                                 <div style={{
                                   fontSize: '13px',
-                                  color: row.status === 'ACTION_REQUIRED' ? '#991b1b' : 'var(--text-main)',
+                                  color: row.status === 'ACTION_REQUIRED' ? '#D94750' : '#17253D',
                                   fontWeight: row.status === 'ACTION_REQUIRED' ? 600 : 400,
                                   lineHeight: 1.5,
                                   whiteSpace: 'pre-line'
@@ -308,10 +310,10 @@ export default function DoctorResponsesView({ onOpenPath, responses: customRespo
                                     display: 'flex',
                                     alignItems: 'center',
                                     justifyContent: 'space-between',
-                                    borderTop: '1px solid #fecaca',
+                                    borderTop: '1px solid #F6C9CD',
                                     paddingTop: '10px'
                                   }}>
-                                    <span style={{ fontSize: '11px', color: '#b91c1c', fontWeight: 600 }}>
+                                    <span style={{ fontSize: '11px', color: '#D94750', fontWeight: 600 }}>
                                       ⚠️ Sight-threatening case flagged by AI triage engine (Grade 3/4). Immediate referral recommended.
                                     </span>
                                     <button
@@ -324,26 +326,26 @@ export default function DoctorResponsesView({ onOpenPath, responses: customRespo
                                         padding: '5px 12px',
                                         fontSize: '11.5px',
                                         borderRadius: '6px',
-                                        background: '#ffffff',
-                                        color: '#16a34a',
-                                        borderColor: '#86efac'
+                                        background: '#F4F7FB',
+                                        color: '#28A88A',
+                                        borderColor: '#bbf7d0'
                                       }}
                                     >
-                                      <CheckCheck size={13} color="#16a34a" />
+                                      <CheckCheck size={13} color="#28A88A" />
                                       Mark Intervention Handled
                                     </button>
                                   </div>
                                 ) : (
                                   <div style={{ marginTop: '10px', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                                    <CheckCircle2 size={13} color="#16a34a" />
-                                    <span style={{ fontSize: '11px', color: '#16a34a', fontWeight: 600 }}>
+                                    <CheckCircle2 size={13} color="#28A88A" />
+                                    <span style={{ fontSize: '11px', color: '#28A88A', fontWeight: 600 }}>
                                       Clinical status verified.
                                     </span>
                                   </div>
                                 )}
                               </>
                             ) : (
-                              <div style={{ fontSize: '12px', color: 'var(--text-muted)', fontStyle: 'italic' }}>
+                              <div style={{ fontSize: '12px', color: '#60708A', fontStyle: 'italic' }}>
                                 Awaiting doctor review. Report has been pushed to central database.
                               </div>
                             )}
@@ -357,7 +359,7 @@ export default function DoctorResponsesView({ onOpenPath, responses: customRespo
 
               {filtered.length === 0 && (
                 <tr>
-                  <td colSpan="6" style={{ padding: '32px 14px', textAlign: 'center', color: 'var(--text-muted)', fontSize: '13px' }}>
+                  <td colSpan="6" style={{ padding: '32px 14px', textAlign: 'center', color: '#8A98AC', fontSize: '13px' }}>
                     No matching doctor responses found.
                   </td>
                 </tr>

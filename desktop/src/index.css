@@ -1,58 +1,101 @@
-@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap');
 
 :root {
-  --font-sans: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+  --font-sans: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   --font-mono: 'JetBrains Mono', monospace;
 
-  /* Sidebar */
-  --sidebar-bg: #ffffff;
-  --sidebar-active-bg: #f0f3fe;
-  --sidebar-active-accent: #4f46e5;
-  --sidebar-text: #64748b;
-  --sidebar-text-active: #4f46e5;
-  --sidebar-hover: #f8fafc;
+  /* LEVEL 1 — APP BACKGROUND */
+  --bg: #EEF3F9;
 
-  /* Layout */
-  --main-bg: #eef1f6;
-  --card-bg: #ffffff;
-  --border-color: #e4e7ee;
-  --border-light: #f0f2f5;
+  /* LEVEL 2 — LARGE CARDS */
+  --surface: #F3F6FA;
+
+  /* LEVEL 3 — INNER CONTROLS / IMAGE CARDS */
+  --surface-white: #F7F9FC;
+  --surface-hover: #F1F5FA;
 
   /* Typography */
-  --text-main: #1a1f37;
-  --text-muted: #6b7194;
-  --text-light: #9ba2c0;
-  --text-secondary: #4a5078;
+  --text-primary: #17253D;
+  --text-secondary: #60708A;
+  --text-muted: #8A98AC;
+  --text-disabled: #AEB9C8;
 
-  /* Brand Accents */
-  --primary: #2d3561;
-  --primary-hover: #222850;
-  --accent-blue: #5b6abf;
-  --accent-cyan: #06b6d4;
-  --accent-indigo: #7c8cf5;
+  /* Primary Blue (Action color) */
+  --blue: #315DAA;
+  --blue-hover: #264a8a;
+  --blue-light: #E7EFFC;
+  --blue-soft: #EEF4FF;
 
-  /* Clinical Status Colors */
-  --status-normal: #10b981;
-  --status-mild: #0284c7;
-  --status-moderate: #d97706;
-  --status-severe: #dc2626;
-  --status-prolif: #991b1b;
+  /* Brand Coral (Severity, Alerts, Active States) */
+  --brand: #EF5B63;
+  --brand-light: #FCE1E3;
+  --brand-soft: #FFF0F1;
+  --brand-dark: #D94750;
 
-  /* Card Accents */
-  --warning-card-bg: #fefce8;
-  --warning-card-border: #fef08a;
-  --warning-text: #ca8a04;
+  /* Clinical Success / Normal */
+  --success: #28A88A;
+  --success-light: #DDF5EE;
 
-  --danger-card-bg: #fff1f2;
-  --danger-card-border: #fecdd3;
-  --danger-text: #e11d48;
+  /* Clinical Warning / Caution */
+  --warning: #E7A348;
+  --warning-light: #FFF1DC;
+  --warning-text: #C77C22;
 
-  --alert-red-bg: #fef2f2;
-  --alert-red-border: #fecaca;
-  --alert-red-text: #991b1b;
+  /* Borders — Low-opacity light border that merges into surface */
+  --border: rgba(180, 192, 210, 0.25);
+  --border-soft: rgba(232, 237, 244, 0.4);
 
-  /* Aliases */
-  --border-card: var(--border-color);
+  /* Calibrated Soft-Inflated Frosted Glass Neomorphic Shadows */
+  --shadow-contact: 0 2px 6px rgba(70, 90, 120, 0.10);
+  --shadow-ambient: 0 10px 24px rgba(70, 90, 120, 0.08);
+  --shadow-lift: -6px -6px 16px rgba(255, 255, 255, 0.90);
+  --highlight-inset: inset 0 1px 1.5px rgba(255, 255, 255, 0.90);
+  --shade-inset: inset 0 -1.5px 3px rgba(150, 165, 185, 0.10);
+
+  --neu-flat:
+      var(--shadow-lift),
+      var(--shadow-contact),
+      var(--shadow-ambient),
+      var(--highlight-inset),
+      var(--shade-inset);
+
+  --neu-flat-sm:
+      -4px -4px 10px rgba(255, 255, 255, 0.85),
+      0 2px 5px rgba(70, 90, 120, 0.09),
+      0 6px 16px rgba(70, 90, 120, 0.06),
+      inset 0 1px 1px rgba(255, 255, 255, 0.85),
+      inset 0 -1px 2px rgba(150, 165, 185, 0.08);
+
+  --neu-flat-hover:
+      -6px -6px 18px rgba(255, 255, 255, 0.95),
+      0 3px 8px rgba(70, 90, 120, 0.12),
+      0 14px 28px rgba(70, 90, 120, 0.10),
+      inset 0 1px 1.5px rgba(255, 255, 255, 0.95),
+      inset 0 -1.5px 3px rgba(150, 165, 185, 0.10);
+
+  --neu-inset:
+      inset 2px 2px 5px rgba(140, 160, 185, 0.22),
+      inset -2px -2px 5px rgba(255, 255, 255, 0.80);
+
+  --neu-inset-sm:
+      inset 1.5px 1.5px 4px rgba(140, 160, 185, 0.18),
+      inset -1.5px -1.5px 4px rgba(255, 255, 255, 0.80);
+
+  /* Aliases for compatibility */
+  --bg-app: var(--bg);
+  --bg-sidebar: var(--bg);
+  --bg-surface: var(--surface);
+  --bg-surface-elevated: var(--surface-white);
+  --bg-inset: var(--bg);
+  --text-main: var(--text-primary);
+  --text-light: var(--text-muted);
+  --border-subtle: rgba(255, 255, 255, 0.25);
+  --border-color: var(--border);
+  --border-light: var(--border-soft);
+  --coral-primary: var(--brand);
+  --coral-hover: var(--brand-dark);
+  --coral-light: var(--brand-light);
+  --card-bg: var(--surface);
 }
 
 * {
@@ -63,53 +106,169 @@
 
 body {
   font-family: var(--font-sans);
-  background-color: #e2e6ee;
-  color: var(--text-main);
+  background-color: var(--bg);
+  color: var(--text-primary);
   min-height: 100vh;
   overflow: hidden;
   user-select: none;
   -webkit-font-smoothing: antialiased;
 }
 
-/* Outer app shell — rounded floating container */
+/* Outer app shell */
 .app-shell {
   display: flex;
   height: 100vh;
   max-height: 100vh;
-  background: var(--main-bg);
-  border-radius: 18px;
+  background: var(--bg);
   overflow: hidden;
-  box-shadow: 0 8px 40px rgba(26, 31, 55, 0.10);
-  margin: 8px;
-  height: calc(100vh - 16px);
 }
 
-/* Custom scrollbars */
+/* Scrollbars */
 ::-webkit-scrollbar {
-  width: 5px;
-  height: 5px;
+  width: 6px;
+  height: 6px;
 }
 ::-webkit-scrollbar-track {
   background: transparent;
 }
 ::-webkit-scrollbar-thumb {
-  background: #c5c9d6;
-  border-radius: 4px;
+  background: #c3cfde;
+  border-radius: 6px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: #9ba2c0;
+  background: #a4b4c7;
 }
 
-/* Cards — borderless, soft shadow, large radius */
-.ui-card {
-  background: var(--card-bg);
-  border: none;
-  border-radius: 16px;
-  box-shadow: 0 2px 12px rgba(26, 31, 55, 0.06);
+/* Sidebar Logo */
+.sidebar-logo {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 24px 20px 28px;
 }
 
-/* Buttons */
-.btn {
+.dr-detect-logo {
+  display: block;
+  width: 155px;
+  height: auto;
+  object-fit: contain;
+}
+
+/* LEVEL 2: Large Raised Panels — Soft Inflated Frosted Glass Slab */
+.ui-card,
+.neu-card {
+  position: relative;
+  background: linear-gradient(
+      145deg,
+      #FFFFFF 0%,
+      #F8FAFD 52%,
+      #F1F5FA 100%
+  );
+  border-radius: 26px;
+  box-shadow: var(--neu-flat);
+  border: 1px solid rgba(255, 255, 255, 0.65);
+  transition: all 0.2s ease;
+}
+
+/* Subtle light reflection along upper portion (subconscious inflated curve highlight) */
+.ui-card::before,
+.neu-card::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  background: radial-gradient(
+      ellipse 70% 32% at 24% 0%,
+      rgba(255, 255, 255, 0.40) 0%,
+      rgba(255, 255, 255, 0.08) 50%,
+      transparent 80%
+  );
+  z-index: 0;
+}
+
+/* LEVEL 3: Inner Controls / Small Embedded Cards */
+.neu-card-sm,
+.neu-card-inner {
+  position: relative;
+  background: linear-gradient(
+      145deg,
+      #FFFFFF 0%,
+      #F8FAFD 52%,
+      #F0F4F9 100%
+  );
+  border-radius: 18px;
+  box-shadow: var(--neu-flat-sm);
+  border: 1px solid rgba(255, 255, 255, 0.60);
+}
+
+/* Dedicated Soft Inflated Frosted Glass Panels for Right Eye (OD) & Left Eye (OS) */
+.fundus-eye-panel {
+  position: relative;
+  border-radius: 18px;
+  background: linear-gradient(
+      145deg,
+      #FFFFFF 0%,
+      #F9FAFD 50%,
+      #ECF1F7 100%
+  );
+  border: 1px solid rgba(255, 255, 255, 0.75);
+  box-shadow:
+      -3px -3px 8px rgba(255, 255, 255, 0.85),
+      0 2px 6px rgba(40, 65, 95, 0.05),
+      0 8px 20px rgba(40, 65, 95, 0.07),
+      inset 0 1px 1px rgba(255, 255, 255, 0.90),
+      inset 0 -1px 2px rgba(140, 160, 185, 0.08);
+  transition: all 0.2s ease;
+}
+
+/* Soft curved top-edge reflection for OD/OS panels */
+.fundus-eye-panel::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  background: radial-gradient(
+      ellipse 65% 30% at 22% 0%,
+      rgba(255, 255, 255, 0.45) 0%,
+      rgba(255, 255, 255, 0.08) 50%,
+      transparent 80%
+  );
+  z-index: 0;
+}
+
+/* Inset inputs and text fields — gently recessed neumorphic appearance */
+.neu-inset,
+.form-input,
+.input-field {
+  background: #EEF3F9;
+  border-radius: 12px;
+  box-shadow: var(--neu-inset);
+  border: 1px solid rgba(180, 195, 215, 0.25);
+  color: var(--text-primary);
+  font-family: var(--font-sans);
+  outline: none;
+  padding: 9px 13px;
+  font-size: 13px;
+  transition: border-color 0.16s ease, box-shadow 0.16s ease;
+}
+
+.form-input::placeholder,
+.input-field::placeholder {
+  color: var(--text-muted);
+}
+
+.form-input:focus,
+.input-field:focus {
+  border-color: var(--blue);
+  box-shadow: var(--neu-inset), 0 0 0 2px var(--blue-light);
+}
+
+/* Neumorphic Buttons with Calibrated Tactile Depth */
+.btn,
+.neu-btn {
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -117,104 +276,157 @@ body {
   font-family: var(--font-sans);
   font-size: 13px;
   font-weight: 600;
-  padding: 8px 16px;
-  border-radius: 10px;
+  padding: 9px 18px;
+  border-radius: 13px;
   cursor: pointer;
-  transition: all 0.18s ease;
-  white-space: nowrap;
-  border: none;
+  background: linear-gradient(
+      145deg,
+      #FFFFFF 0%,
+      #F6F9FC 60%,
+      #EEF3F9 100%
+  );
+  color: var(--text-secondary);
+  border: 1px solid rgba(255, 255, 255, 0.65);
+  box-shadow:
+      -2px -2px 6px rgba(255, 255, 255, 0.90),
+      0 2px 5px rgba(70, 90, 120, 0.09),
+      inset 0 1px 1px rgba(255, 255, 255, 0.95),
+      inset 0 -1px 2px rgba(150, 165, 185, 0.08);
+  transition: all 0.16s ease;
+  outline: none;
 }
 
+.btn:hover:not(:disabled),
+.neu-btn:hover:not(:disabled) {
+  color: var(--text-primary);
+  box-shadow:
+      -3px -3px 8px rgba(255, 255, 255, 0.95),
+      0 3px 8px rgba(70, 90, 120, 0.12),
+      inset 0 1px 1px rgba(255, 255, 255, 0.98),
+      inset 0 -1px 2px rgba(150, 165, 185, 0.08);
+  transform: translateY(-0.5px);
+}
+
+.btn:active:not(:disabled),
+.neu-btn:active:not(:disabled) {
+  box-shadow:
+      inset 2px 2px 5px rgba(140, 160, 185, 0.22),
+      inset -2px -2px 5px rgba(255, 255, 255, 0.70);
+  transform: translateY(0);
+}
+
+/* Primary Action Button (Blue #315DAA) */
 .btn-primary {
-  background-color: var(--primary);
+  background: linear-gradient(145deg, #3869BE 0%, #315DAA 60%, #264B8C 100%);
   color: #ffffff;
+  border: 1px solid rgba(255, 255, 255, 0.20);
+  box-shadow:
+      0 2px 6px rgba(35, 70, 130, 0.25),
+      0 6px 14px rgba(35, 70, 130, 0.18),
+      inset 0 1px 1px rgba(255, 255, 255, 0.40),
+      inset 0 -1px 2px rgba(15, 35, 70, 0.25);
 }
 
 .btn-primary:hover:not(:disabled) {
-  background-color: var(--primary-hover);
-  box-shadow: 0 4px 14px rgba(45, 53, 97, 0.25);
+  background: linear-gradient(145deg, #3b6fc9 0%, #285199 60%, #1e3d74 100%);
+  box-shadow:
+      0 3px 8px rgba(35, 70, 130, 0.30),
+      0 8px 16px rgba(35, 70, 130, 0.22),
+      inset 0 1px 1px rgba(255, 255, 255, 0.45);
 }
 
+.btn-primary:active:not(:disabled) {
+  box-shadow: inset 2px 2px 5px rgba(15, 35, 70, 0.45);
+}
+
+/* Brand Coral / Alert Button (#EF5B63) */
+.btn-coral,
+.neu-btn-coral,
+.btn-brand {
+  background: linear-gradient(145deg, #F66D75 0%, #EF5B63 60%, #D94750 100%);
+  color: #ffffff;
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  box-shadow:
+      0 2px 6px rgba(180, 50, 60, 0.25),
+      0 6px 14px rgba(180, 50, 60, 0.18),
+      inset 0 1px 1px rgba(255, 255, 255, 0.40),
+      inset 0 -1px 2px rgba(120, 25, 35, 0.25);
+}
+
+.btn-coral:hover:not(:disabled),
+.neu-btn-coral:hover:not(:disabled),
+.btn-brand:hover:not(:disabled) {
+  background: linear-gradient(145deg, #f8787f 0%, #e64b53 60%, #c43840 100%);
+  color: #ffffff;
+}
+
+/* Success Button (#28A88A) */
+.btn-success,
+.btn-emerald,
+.neu-btn-primary {
+  background: linear-gradient(145deg, #32BFA0 0%, #28A88A 60%, #208E75 100%);
+  color: #ffffff;
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  box-shadow:
+      0 2px 6px rgba(30, 130, 105, 0.25),
+      0 6px 12px rgba(30, 130, 105, 0.18),
+      inset 0 1px 1px rgba(255, 255, 255, 0.40),
+      inset 0 -1px 2px rgba(15, 70, 55, 0.25);
+}
+
+.btn-success:hover:not(:disabled),
+.btn-emerald:hover:not(:disabled) {
+  background: linear-gradient(145deg, #38cca9 0%, #22947a 60%, #197561 100%);
+  color: #ffffff;
+}
+
+/* Outline button */
 .btn-outline {
-  background-color: #ffffff;
-  color: var(--text-main);
-  border: 1px solid var(--border-color);
+  background: linear-gradient(
+      145deg,
+      #FFFFFF 0%,
+      #F6F9FC 60%,
+      #EEF3F9 100%
+  );
+  color: var(--text-secondary);
+  border: 1px solid rgba(255, 255, 255, 0.65);
+  box-shadow:
+      -2px -2px 6px rgba(255, 255, 255, 0.90),
+      0 2px 5px rgba(70, 90, 120, 0.08),
+      inset 0 1px 1px rgba(255, 255, 255, 0.95),
+      inset 0 -1px 2px rgba(150, 165, 185, 0.08);
 }
 
 .btn-outline:hover:not(:disabled) {
-  background-color: #f6f7fb;
-  border-color: #c5c9d6;
+  color: var(--text-primary);
+  box-shadow:
+      -3px -3px 8px rgba(255, 255, 255, 0.95),
+      0 3px 7px rgba(70, 90, 120, 0.10);
 }
 
-.btn-blue {
-  background-color: var(--accent-blue);
-  color: #ffffff;
-}
-
-.btn-blue:hover:not(:disabled) {
-  background-color: #4a59ae;
-  box-shadow: 0 4px 14px rgba(91, 106, 191, 0.3);
-}
-
+/* Danger button */
 .btn-danger {
-  background-color: #ef4444;
+  background: var(--brand-dark);
   color: #ffffff;
+  border: 1px solid var(--brand-dark);
 }
 
 .btn-danger:hover:not(:disabled) {
-  background-color: #dc2626;
-  box-shadow: 0 4px 14px rgba(239, 68, 68, 0.25);
+  background: #bf353e;
 }
 
-.btn-secondary {
-  background-color: #f1f3f9;
-  color: var(--text-secondary);
-  border: 1px solid #e4e7ee;
-}
-
-.btn-secondary:hover:not(:disabled) {
-  background-color: #e4e7ee;
-}
-
-.btn-emerald {
-  background-color: #10b981;
-  color: #ffffff;
-}
-
-.btn-emerald:hover:not(:disabled) {
-  background-color: #059669;
-  box-shadow: 0 4px 14px rgba(16, 185, 129, 0.25);
-}
-
-.btn:disabled {
-  opacity: 0.5;
+/* Disabled states */
+.btn:disabled,
+.neu-btn:disabled {
+  opacity: 0.65;
   cursor: not-allowed;
   box-shadow: none;
 }
 
-/* Form Inputs */
-.form-input,
-.input-field {
-  background: #f6f7fb;
-  border: 1.5px solid #e4e7ee;
-  border-radius: 10px;
-  padding: 9px 14px;
-  font-family: var(--font-sans);
-  font-size: 13px;
-  color: var(--text-main);
-  outline: none;
-  transition: border-color 0.15s ease, box-shadow 0.15s ease;
-}
-
-.form-input:focus,
-.input-field:focus {
-  border-color: var(--accent-indigo);
-  box-shadow: 0 0 0 3px rgba(124, 140, 245, 0.12);
-  background: #ffffff;
-}
-
-.input-field {
-  width: 100%;
+.btn-primary:disabled {
+  background: #F2A5AA;
+  border-color: #F2A5AA;
+  color: #ffffff;
 }
 
 /* Animations */

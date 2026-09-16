@@ -19,23 +19,23 @@ export default function ResultsHub({ resultData, onSaveVisit, isSaving, saveResu
 
   const getGradeColor = (grade) => {
     switch (grade) {
-      case 0: return '#10b981';
-      case 1: return '#0284c7';
-      case 2: return '#d97706';
-      case 3: return '#ea580c';
-      case 4: return '#dc2626';
-      default: return '#94a3b8';
+      case 0: return '#28A88A';
+      case 1: return '#315DAA';
+      case 2: return '#E7A348';
+      case 3: return '#EF5B63';
+      case 4: return '#D94750';
+      default: return '#8A98AC';
     }
   };
 
   const getGradeBg = (grade) => {
     switch (grade) {
-      case 0: return { bg: '#f0fdf4', border: '#bbf7d0' };
-      case 1: return { bg: '#f0f9ff', border: '#bae6fd' };
-      case 2: return { bg: '#fefce8', border: '#fef08a' };
-      case 3: return { bg: '#fff7ed', border: '#fed7aa' };
-      case 4: return { bg: '#fef2f2', border: '#fecaca' };
-      default: return { bg: '#f8fafc', border: '#e2e8f0' };
+      case 0: return { bg: '#DDF5EE', border: '#bbf7d0' };
+      case 1: return { bg: '#E7EFFC', border: '#bae6fd' };
+      case 2: return { bg: '#FFF1DC', border: '#fed7aa' };
+      case 3:
+      case 4: return { bg: '#FCE1E3', border: '#fecdd3' };
+      default: return { bg: '#F8FAFD', border: '#E0E7F0' };
     }
   };
 
@@ -50,7 +50,7 @@ export default function ResultsHub({ resultData, onSaveVisit, isSaving, saveResu
     return (
       <div style={{ position: 'relative', width: '88px', height: '88px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
         <svg width="88" height="88" viewBox="0 0 88 88" style={{ transform: 'rotate(-90deg)' }}>
-          <circle cx="44" cy="44" r={radius} fill="transparent" stroke="#e2e8f0" strokeWidth={strokeWidth} />
+          <circle cx="44" cy="44" r={radius} fill="transparent" stroke="#E0E7F0" strokeWidth={strokeWidth} />
           <circle
             cx="44" cy="44" r={radius} fill="transparent"
             stroke={color} strokeWidth={strokeWidth}
@@ -63,7 +63,7 @@ export default function ResultsHub({ resultData, onSaveVisit, isSaving, saveResu
           <div style={{ fontSize: '18px', fontWeight: 800, color: color, lineHeight: 1 }}>
             L{grade}
           </div>
-          <div style={{ fontSize: '10px', color: 'var(--text-muted)', marginTop: '2px', fontWeight: 600 }}>
+          <div style={{ fontSize: '10.5px', color: '#60708A', marginTop: '2px', fontWeight: 600 }}>
             {confidence}%
           </div>
         </div>
@@ -82,29 +82,29 @@ export default function ResultsHub({ resultData, onSaveVisit, isSaving, saveResu
     return (
       <div className="ui-card" style={{ padding: '18px 20px', display: 'flex', flexDirection: 'column', gap: '14px' }}>
         {/* Header */}
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: '1px solid var(--border-color)', paddingBottom: '10px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: '1px solid #E0E7F0', paddingBottom: '10px' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
             <span style={{
               width: '10px',
               height: '10px',
               borderRadius: '50%',
-              backgroundColor: isOD ? '#4f5ef7' : '#525c6a',
+              backgroundColor: isOD ? '#315DAA' : '#60708A',
               display: 'inline-block',
               flexShrink: 0
             }} />
             <div>
-              <h3 style={{ fontSize: '14px', fontWeight: 700, color: 'var(--text-main)' }}>
+              <h3 style={{ fontSize: '14px', fontWeight: 800, color: '#17253D' }}>
                 {title}
               </h3>
-              <span style={{ fontSize: '11px', color: 'var(--text-muted)' }}>
+              <span style={{ fontSize: '11px', color: '#60708A' }}>
                 Quality: {eye.quality || 'Good'}
               </span>
             </div>
           </div>
           <span style={{
-            background: `${color}15`,
+            background: gradeBg.bg,
             color: color,
-            border: `1px solid ${color}40`,
+            border: `1px solid ${gradeBg.border}`,
             borderRadius: '20px',
             padding: '3px 10px',
             fontSize: '11px',
@@ -126,18 +126,18 @@ export default function ResultsHub({ resultData, onSaveVisit, isSaving, saveResu
         }}>
           {renderRadialGauge(eye.predictedGrade, eye.confidence)}
           <div>
-            <div style={{ fontSize: '14px', fontWeight: 800, color: color }}>
+            <div style={{ fontSize: '15px', fontWeight: 800, color: color }}>
               {eye.gradeLabel}
             </div>
-            <div style={{ fontSize: '11px', color: 'var(--text-muted)', marginTop: '4px' }}>
-              Model 2 Softmax Confidence: <strong style={{ color: 'var(--text-main)' }}>{eye.confidence}%</strong>
+            <div style={{ fontSize: '11.5px', color: '#60708A', marginTop: '4px' }}>
+              Model 2 Softmax Confidence: <strong style={{ color: '#17253D' }}>{eye.confidence}%</strong>
             </div>
           </div>
         </div>
 
         {/* Lesion Tags */}
         <div>
-          <span style={{ fontSize: '11px', fontWeight: 600, color: 'var(--text-muted)', display: 'block', marginBottom: '6px' }}>
+          <span style={{ fontSize: '11.5px', fontWeight: 600, color: '#60708A', display: 'block', marginBottom: '6px' }}>
             Detected Biomarkers / Lesions:
           </span>
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
@@ -148,9 +148,9 @@ export default function ResultsHub({ resultData, onSaveVisit, isSaving, saveResu
                   <span
                     key={idx}
                     style={{
-                      background: isNormal ? '#f0fdf4' : '#fef2f2',
-                      color: isNormal ? '#16a34a' : '#dc2626',
-                      border: `1px solid ${isNormal ? '#bbf7d0' : '#fecaca'}`,
+                      background: isNormal ? '#DDF5EE' : '#FCE1E3',
+                      color: isNormal ? '#28A88A' : '#D94750',
+                      border: `1px solid ${isNormal ? '#bbf7d0' : '#F6C9CD'}`,
                       borderRadius: '6px',
                       padding: '3px 8px',
                       fontSize: '11px',
@@ -162,7 +162,7 @@ export default function ResultsHub({ resultData, onSaveVisit, isSaving, saveResu
                 );
               })
             ) : (
-              <span style={{ fontSize: '11px', color: 'var(--text-muted)' }}>No lesion tags available</span>
+              <span style={{ fontSize: '11px', color: '#8A98AC' }}>No lesion tags available</span>
             )}
           </div>
         </div>
@@ -170,11 +170,11 @@ export default function ResultsHub({ resultData, onSaveVisit, isSaving, saveResu
         {/* Grad-CAM Heatmap Blending */}
         <div>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '6px' }}>
-            <span style={{ fontSize: '11px', fontWeight: 600, color: 'var(--text-secondary)', display: 'flex', alignItems: 'center', gap: '4px' }}>
-              <Sliders size={13} color="var(--accent-blue)" />
+            <span style={{ fontSize: '11.5px', fontWeight: 600, color: '#17253D', display: 'flex', alignItems: 'center', gap: '5px' }}>
+              <Sliders size={13} color="#315DAA" />
               Grad-CAM Attention Overlay
             </span>
-            <span style={{ fontSize: '11px', color: 'var(--text-muted)', fontFamily: 'var(--font-mono)' }}>
+            <span style={{ fontSize: '11px', color: '#60708A', fontFamily: 'var(--font-mono)' }}>
               {Math.round(blend * 100)}% Heatmap
             </span>
           </div>
@@ -184,7 +184,7 @@ export default function ResultsHub({ resultData, onSaveVisit, isSaving, saveResu
             min="0" max="1" step="0.02"
             value={blend}
             onChange={(e) => setBlend(parseFloat(e.target.value))}
-            style={{ width: '100%', marginBottom: '8px', accentColor: 'var(--accent-blue)' }}
+            style={{ width: '100%', marginBottom: '8px', accentColor: '#315DAA' }}
           />
 
           {/* Layered Image Container */}
@@ -194,8 +194,8 @@ export default function ResultsHub({ resultData, onSaveVisit, isSaving, saveResu
             height: '200px',
             borderRadius: '8px',
             overflow: 'hidden',
-            background: '#000',
-            border: '1px solid var(--border-color)',
+            background: '#000000',
+            border: '1px solid #E0E7F0',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center'
@@ -219,7 +219,7 @@ export default function ResultsHub({ resultData, onSaveVisit, isSaving, saveResu
               />
             )}
             {!rawSrc && !heatSrc && (
-              <span style={{ fontSize: '12px', color: '#64748b' }}>Heatmap images will appear after engine analysis</span>
+              <span style={{ fontSize: '12px', color: '#60708A' }}>Heatmap images will appear after engine analysis</span>
             )}
           </div>
         </div>
@@ -232,8 +232,8 @@ export default function ResultsHub({ resultData, onSaveVisit, isSaving, saveResu
       {/* Referral Decision Banner */}
       <div className="ui-card" style={{
         padding: '16px 20px',
-        background: isReferable ? '#fef2f2' : '#f0fdf4',
-        border: `1px solid ${isReferable ? '#fecaca' : '#bbf7d0'}`,
+        background: isReferable ? '#FCE1E3' : '#DDF5EE',
+        border: `1px solid ${isReferable ? '#F6C9CD' : '#bbf7d0'}`,
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'space-between'
@@ -241,16 +241,16 @@ export default function ResultsHub({ resultData, onSaveVisit, isSaving, saveResu
         <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
           <div style={{
             width: '38px', height: '38px', borderRadius: '10px',
-            background: isReferable ? '#fee2e2' : '#dcfce7',
+            background: isReferable ? '#EF5B63' : '#28A88A',
             display: 'flex', alignItems: 'center', justifyContent: 'center'
           }}>
-            {isReferable ? <ShieldAlert size={20} color="#dc2626" /> : <CheckCircle2 size={20} color="#16a34a" />}
+            {isReferable ? <ShieldAlert size={20} color="#ffffff" /> : <CheckCircle2 size={20} color="#ffffff" />}
           </div>
           <div>
-            <div style={{ fontSize: '15px', fontWeight: 800, color: isReferable ? '#991b1b' : '#166534' }}>
+            <div style={{ fontSize: '15px', fontWeight: 800, color: isReferable ? '#D94750' : '#28A88A' }}>
               {overallReferral}
             </div>
-            <div style={{ fontSize: '12px', color: isReferable ? '#b91c1c' : '#15803d', marginTop: '1px' }}>
+            <div style={{ fontSize: '12px', color: isReferable ? '#D94750' : '#28A88A', marginTop: '1px', opacity: 0.9 }}>
               {isReferable
                 ? 'Patient exhibits referable DR. Schedule specialist consultation.'
                 : 'No sight-threatening lesions. Routine 12-month follow-up.'}
@@ -263,16 +263,16 @@ export default function ResultsHub({ resultData, onSaveVisit, isSaving, saveResu
           {saveResult ? (
             <div style={{ display: 'flex', gap: '8px' }}>
               <button className="btn btn-outline" onClick={() => onOpenPath(saveResult.pdfPath)} style={{ fontSize: '12px' }}>
-                <FileText size={14} color="#2563eb" />
+                <FileText size={14} color="#315DAA" />
                 View PDF
               </button>
               <button className="btn btn-outline" onClick={() => onOpenPath(saveResult.visitPath)} style={{ fontSize: '12px' }}>
-                <FolderOpen size={14} />
+                <FolderOpen size={14} color="#60708A" />
                 Open Folder
               </button>
             </div>
           ) : (
-            <button className="btn btn-emerald" onClick={onSaveVisit} disabled={isSaving} style={{ fontSize: '12.5px' }}>
+            <button className="btn btn-success" onClick={onSaveVisit} disabled={isSaving} style={{ fontSize: '12.5px' }}>
               <Download size={15} />
               {isSaving ? 'Generating...' : 'Save & Export PDF'}
             </button>

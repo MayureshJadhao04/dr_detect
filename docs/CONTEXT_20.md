@@ -1,114 +1,52 @@
-# Context handoff v20 — Full Frontend Completion & Compilation Readiness
+# Context Handoff v21 — Full Neumorphic UI Polish & Standalone Packaging
 
-Supersedes `CONTEXT_19.md`. 
+Supersedes `CONTEXT_20.md`.
 
-**Current State (Sept 11, 2026)**:
-The frontend desktop application has been completely built, verified, redesigned to match the hospital reference dashboard, and committed to git (`7a66e9d`). All core features (bilateral screening, Grad-CAM overlay, PDF reporting, patient records, real tele-triage doctor responses, and daemon management) are operational.
-
----
-
-## 1. Project Summary
-
-- **Problem**: SIH Problem Statement 26038 (MathWorks) — "Explainable AI for Diabetic Retinopathy Screening in Rural India."
-- **Stack**:
-  - **AI / Pipeline**: MATLAB R2026a, NVIDIA GPU, Model 1 (DeepLabv3+ lesion segmentation), Model 2 (ResNet-101 ICDR 0–4 severity grading), Grad-CAM heatmaps.
-  - **Desktop App**: Electron 44 + React 19 + Vite 8 + Lucide React.
-  - **Local IPC / Backend**: `models/pipelineServer.m` stdio JSON-IPC daemon (pure stdin/stdout, newline-delimited, zero ports/listening sockets, immune to firewall blocks) supervised by `desktop/electron/daemonManager.cjs`.
-- **Repo Root**: `D:\Projects\dr-screening\`
+**Current Milestone (Sept 16–17, 2026):**
+The DR Detect desktop application has completed its final visual polish pass, establishing a clinical neumorphic / soft-inflated frosted glass aesthetic across all primary and nested panels. Transparent high-resolution branding has been installed, multi-tab routing (Screening, Dashboard, Records, Reports, Doctor Review, Analytics, Model Insights, Settings) is fully operational, and the standalone distribution bundle (`DR-Detect-1.0.0-x64.exe`) is verified and compiled.
 
 ---
 
-## 2. Models & MATLAB Pipeline (Unchanged & Final)
+## 1. Summary of Changes Completed in this Milestone
 
-- **Model 1**: `models/model1_final.mat` (DeepLabv3+ segmentation for microaneurysms, hemorrhages, hard/soft exudates).
-- **Model 2**: `models/model2_final_weighted.mat` (ResNet-101 fusion classifier for ICDR 0–4 severity grading).
-- **Explainability**: `models/generateGradCAM.m`, `generateGradCAMForImage.m`.
-- **Backend Daemon Protocol**: `models/pipelineServer.m` communicates via stdin/stdout:
-  - Inbound: `{"id":"...","action":"analyze|save|ping|set_config|exit",...}\n`
-  - Outbound: `{"id":"...","event":"ready|progress|analysis_complete|saved|pong|error",...}\n`
-  - Error Contract: Structured shape `{"id":"...","event":"error","code":"...","message":"...","remedy":"..."}`.
-- **Reporting & Storage**: `models/generatePatientReport.m`, `renderPatientReportPDF.m`, `savePatientVisit.m`. Uses pure local offline file store (`patient_data/<patientID>/visits/<timestamp>/`), no external database engine required.
+### A. Clinical Neumorphic Surface & Shadow Architecture (`desktop/src/index.css`)
+- **Card Surfaces**: Soft directional surface variation (`linear-gradient(145deg, #FFFFFF 0%, #F8FAFD 52%, #F1F5FA 100%)`) providing subtle depth on `#EEF3F9` clinical background.
+- **Calibrated Multi-Layer Shadows**:
+  - `var(--shadow-lift)`: `-6px -6px 16px rgba(255, 255, 255, 0.90)` (upper-left physical ambient lift)
+  - `var(--shadow-contact)`: `0 2px 6px rgba(70, 90, 120, 0.10)` (close darker contact shadow)
+  - `var(--shadow-ambient)`: `0 10px 24px rgba(70, 90, 120, 0.08)` (larger low-opacity ambient separation)
+  - `var(--highlight-inset)`: `inset 0 1px 1.5px rgba(255, 255, 255, 0.90)` (inflated curved edge reflection)
+  - `var(--shade-inset)`: `inset 0 -1.5px 3px rgba(150, 165, 185, 0.10)` (subtle lower edge curvature dropoff)
+- **OD / OS Fundus Panels**: Dedicated `.fundus-eye-panel` class with lens-like edge lighting (`::before` diffuse specular reflection) floating naturally within outer cards without harsh 1px borders.
+- **Tactile Inputs & Buttons**: Recessed neumorphic search and form inputs (`--neu-inset`), tactile raised buttons, and distinct disabled state styling.
 
----
+### B. Logo Asset & DOM Tagline (`desktop/src/components/Logo.jsx`)
+- Installed clean, transparent RGBA logo mark (`desktop/src/assets/dr-detect-logo.png` & `desktop/public/dr-detect-logo.png`, 477×523).
+- Separated tagline from image into crisp, legible DOM text:
+  ```html
+  EARLY DETECTION · BRIGHTER TOMORROWS
+  ```
+  Styled with `Inter`, uppercase, `0.11em` tracking, `#60708A`, and `#EF5B63` brand coral accent dot.
+- Direct asset import for instant Vite cache-busting in development and production builds.
 
-## 3. Desktop Frontend Architecture (Completed)
+### C. Multi-View Dashboard Integration
+- Expanded desktop shell with 8 functional tabs:
+  1. `screen`: Bilateral screening console, camera upload tiles, progress stepper, results hub.
+  2. `dashboard`: Throughput metrics, quick-action cards, recent clinical alerts.
+  3. `patients`: Local offline records browser with search and direct report launch.
+  4. `reports`: Clinical A4 PDF archive with filtering by referral recommendation.
+  5. `responses`: Tele-triage dashboard with automated `ACTION REQUIRED` alerts for severe DR.
+  6. `analytics`: Population statistics, ICDR prevalence breakdowns, turnaround times.
+  7. `model-info`: DeepLabv3+ segmentation and ResNet-101 pipeline architecture and Grad-CAM explainability specs.
+  8. `settings`: Daemon supervisory controls, GPU status, and offline storage paths.
 
-All UI components reside in `desktop/src/components/` and are fully operational:
-
-### A. Shell & Layout
-- **Container**: `app-shell` rounded floating container (18px border radius, soft shadow, `#eef1f6` main background).
-- **Sidebar** (`Sidebar.jsx`): Pure white (`#ffffff`) sidebar with dark headings, subtle right border, and active tab light indigo highlight (`#f0f3fe`) with curved left capsule marker matching reference design.
-- **TopBar** (`TopBar.jsx`): Transparent header with centered search bar pill, live date/time clock, notification bell, and operator profile badge.
-
-### B. Screening Tab (`activeTab === 'screen'`)
-1. **PatientInfoCard** (`PatientInfoCard.jsx`):
-   - Fields: Name, Age, Gender, Contact, Notes, Risk Factors, Screening Date.
-   - "Add New Patient": Clears input fields, preserves gender selector clean state, auto-increments Patient ID (`P-10249`, `P-10250`, etc.).
-   - Edit toggle allows updating patient details without losing entered data.
-2. **FundusImagesCard** (`FundusImagesCard.jsx`):
-   - Separate upload tiles for Right Eye (OD) and Left Eye (OS).
-   - Local image preview with "Image Added" badges that validate real image presence (never flags empty placeholders).
-   - "Replace Image" and "Clear" actions for error correction.
-3. **ScreeningResultCard** (`ScreeningResultCard.jsx`):
-   - Guard against empty image runs: "Run Screening" disabled until both OD and OS images are uploaded.
-   - "Stop Screening" abort button during analysis.
-   - **OD Card (Right Eye)**: Styled after top-right panel in reference with rich royal blue gradient (`#4f5ef7` -> `#3a4ae4`), white typography, ICDR badge, and subtle bar chart graphic.
-   - **OS Card (Left Eye)**: Styled after bottom-right panel in reference with dark slate/charcoal gradient (`#525c6a` -> `#3e4652`), white typography, green ICDR badge, and subtle node graphic.
-   - **Referral Banner**: Clinical triage recommendation (Referral Recommended vs Routine Follow-up).
-   - **Actions**: "View Report" (opens generated A4 PDF in native viewer) and "Send Report" (saves to patient visit folder and pushes to doctor review database).
-4. **ProgressStepper** (`ProgressStepper.jsx`):
-   - 4-stage pipeline visualization (Preprocessing -> DeepLabv3+ -> ResNet-101 -> Report Compilation) with abort control.
-5. **ResultsHub** (`ResultsHub.jsx`):
-   - Detailed bilateral comparison columns with OD (blue) and OS (slate) markers.
-   - Radial severity gauge, detected biomarker/lesion chips, and interactive Grad-CAM attention blending slider (0–100%).
-   - Export buttons: "View PDF" and "Open Folder".
-6. **RecordsTable** (`RecordsTable.jsx`):
-   - Patient visit history table with real-time search filtering, status pills, and direct report launch buttons.
-
-### C. Doctor Responses Tab (`activeTab === 'responses'`)
-- **DoctorResponsesView** (`DoctorResponsesView.jsx`):
-  - Tele-triage dashboard displaying doctor feedback on uploaded reports.
-  - **Real Triage Logic**: Automatically flags severe cases (`maxGrade >= 3` npdr/pdr) as `ACTION REQUIRED` (red alert badge), while lower grades are marked `REVIEWED` (green).
-  - Search filter, summary metric cards, and "View Report" links.
-
-### D. Settings Tab (`activeTab === 'settings'`)
-- **SettingsView** (`SettingsView.jsx`): Daemon port configuration, model checkpoint paths, ping check, and UI preferences.
+### D. MATLAB Reporting Engine Optimization (`models/renderPatientReportPDF.m`)
+- Refined typography and spacing hierarchy to ensure clean 1-page A4 vertical fit.
+- Simultaneous generation of crisp vector PDF (`print(fig, pdfPath, '-dpdf', '-r300', '-bestfit')`) and high-resolution companion raster (`print(fig, pngPath, '-dpng', '-r150')`) for in-app previews.
 
 ---
 
-## 4. Electron Daemon Integration (`desktop/electron/`)
-
-- `daemonManager.cjs`: Spawns and supervises the MATLAB backend process.
-  - Checks for compiled executable at `dr_backend.exe`.
-  - Fallback in development mode: runs `matlab -batch "run('models/pipelineServer.m');"`.
-  - 120-second watchdog timer, stdout parsing, automatic restart up to 2 attempts on crash.
-- `main.cjs` & `preload.cjs`: IPC bridge exposing `window.api` methods (`runScreening`, `stopPipeline`, `savePatientVisit`, `getPatientHistory`, `openPath`, `getDaemonStatus`).
-
----
-
-## 5. Verification & Git Status
-
-- **Build**: `npm run build` in `desktop/` succeeds cleanly in <400ms (`dist/` generated).
-- **Git Commit**: `7a66e9d` — `feat(ui): complete dashboard redesign, white sidebar, and bilateral OD/OS cards`. Working tree is 100% clean.
-
----
-
-## 6. Standalone Executable & Installer (Completed)
-
-1. **MATLAB Backend (`dr_backend.exe`)**:
-   - Compiled via native MATLAB Compiler (`mcc`):
-     ```matlab
-     mcc -m models/pipelineServer.m -a models -a functions -o dr_backend -d dist_backend -v
-     ```
-   - Standard input reading uses `input('', 's')` (immune to Windows Runtime descriptor bugs, zero JVM requirement).
-   - Standard output uses unbuffered `fprintf(1, '%s\n', str)`.
-   - Verified end-to-end with real fundus image inputs: Model 1 tile/stitch segmentation, Model 2 ResNet-101 grading, Grad-CAM generation, and disk heatmap export all exit 0 in <15s.
-
-2. **Standalone Windows Desktop Installer**:
-   - Built via `electron-builder` in `desktop/`:
-     ```powershell
-     npm run build:exe
-     ```
-   - **Artifact**: `desktop/dist_electron/DR-Detect-1.0.0-x64.exe` (713 MB).
-   - **Architecture**: `dr_backend.exe` sits unpacked inside `resources/` (`extraResources`), allowing direct parent-to-child stdio process execution outside `.asar`.
-   - **Data Directory**: Points to `app.getPath('userData')/patient_data` (`%APPDATA%`), fully writable without administrative elevation.
+## 2. Verification & Build Health
+- `npm run build` in `desktop/`: passes in ~365ms with 0 errors.
+- Headless backend binary `dr_backend.exe` verified with real bilateral fundus images (<15s run time).
+- Production NSIS installer `desktop/dist_electron/DR-Detect-1.0.0-x64.exe` (713 MB) ready for deployment.

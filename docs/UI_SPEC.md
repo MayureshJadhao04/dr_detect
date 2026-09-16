@@ -1,109 +1,90 @@
-# UI spec — screening app
+# UI Spec — DR Detect Desktop Application
 
-Built as a programmatic MATLAB app: `uifigure` + `uigridlayout`, not
-drag-and-drop App Designer, so it can be scripted/iterated with an AI
-coding assistant and kept as plain `.m` files.
+The application is built as a cross-platform desktop application using **Electron 44 + React 19 + Vite 8**, connected via headless stdio JSON-IPC to the MATLAB R2026a backend runtime.
 
-## Layout
+---
 
-**Overall**: single `uifigure`, `uigridlayout` with a narrow left sidebar
-column and a wide main column.
+## 1. Aesthetic & Design System: Clinical Neumorphic / Soft Inflated Glass
 
-**Sidebar (left, narrow)**
-- App icon/logo
-- Icon-only nav elements (visual only for v1 — single screen, no real
-  navigation needed): eye icon, scan icon, report icon, chart icon
+The UI adopts a tactile, clinical frosted-glass aesthetic reminiscent of physical medical hardware surfaces:
+- **Surface Elevation**: Cards look like inflated frosted-glass slabs floating subtly above a light `#EEF3F9` clinical background.
+- **Surface Material**: Soft directional tonal variation (`linear-gradient(145deg, #FFFFFF 0%, #F8FAFD 52%, #F1F5FA 100%)`).
+- **Multi-Layer Shadow Architecture**:
+  - Top-left ambient lift: `-6px -6px 16px rgba(255, 255, 255, 0.90)`
+  - Close contact shadow: `0 2px 6px rgba(70, 90, 120, 0.10)`
+  - Diffuse ambient separation: `0 10px 24px rgba(70, 90, 120, 0.08)`
+  - Inset upper rim highlight: `inset 0 1px 1.5px rgba(255, 255, 255, 0.90)`
+  - Inset lower curvature shading: `inset 0 -1.5px 3px rgba(150, 165, 185, 0.10)`
+- **Subconscious Edge Lighting (`::before`)**: Diffuse specular highlight along upper curved rims (`radial-gradient(ellipse 70% 32% at 24% 0%, rgba(255,255,255,0.40), transparent 80%)`).
+- **Border Treatment**: No harsh dark borders. Uses soft edge glows (`1px solid rgba(255, 255, 255, 0.65)`).
+- **Recessed Controls**: Inputs and search fields use gentle neumorphic insets (`--neu-inset`: `inset 2px 2px 5px rgba(140,160,185,0.22)`, `inset -2px -2px 5px rgba(255,255,255,0.80)`).
 
-**Top bar (main column, row 1)**
-- Title: "Retina screening console"
-- Subtitle: patient ID + camera model (static/placeholder text for demo)
-- Status pill: "System ready" (green) / "Processing..." (amber) /
-  "Error" (red)
+---
 
-**Pipeline stepper (main column, row 2)**
-- 4 stages shown as circles + labels: Enhancement & quality check →
-  Segmentation → Grading → Report & routing (matches the pipeline order
-  in ARCHITECTURE.md: enhancement runs first, then quality check on the
-  enhanced image)
-- Each circle: gray (pending) → blue (in progress) → green with checkmark
-  (done)
-- Updates live as the pipeline runs on a loaded image
+## 2. Layout & Global Navigation
 
-**Main content (main column, row 3, split into two columns)**
+### Sidebar (`desktop/src/components/Sidebar.jsx`)
+- **Width**: 240px, full height with soft right border and subtle elevation shadow.
+- **Brand Header** (`Logo.jsx`):
+  - Pure transparent RGBA retina logo mark (477×523 natural ratio, 130px width).
+  - DOM-rendered crisp tagline: `EARLY DETECTION · BRIGHTER TOMORROWS` in `Inter`, uppercase, `0.11em` tracking with brand coral accent dot (`#EF5B63`).
+- **Navigation Tabs**:
+  1. `Dashboard` — System overview, throughput metrics, recent alerts.
+  2. `New Screening` — Bilateral examination console with live AI pipeline.
+  3. `Patients` — Offline local patient visits archive (`patient_data/`).
+  4. `Reports` — Standardized clinical A4 PDF document library.
+  5. `Doctor Review` — Tele-triage dashboard with automated severity flags.
+  6. `Analytics` — District-level population epidemiology & model validation graphs.
+  7. `Model Insights` — DeepLabv3+ & ResNet-101 architecture and explainability specs.
+  8. `Settings` — Daemon watchdog configuration, GPU acceleration, and storage paths.
+- **Active State**: Light coral pill (`#FCE1E3`) with coral border (`#F6C9CD`) and coral text (`#D94750`).
 
-*Left column:*
-- Image display area (`uiimage` or `uiaxes`) showing the loaded fundus
-  image with overlay toggles (Grad-CAM heatmap / vessels / lesions shown
-  as small pill badges above the image — clickable if time allows,
-  otherwise static labels for v1)
-- "Load image" button
-- "Run screening" button
+### Top Bar (`desktop/src/components/TopBar.jsx`)
+- Dynamic breadcrumb header per active tab.
+- Inset search pill with quick navigation.
+- Engine status indicator pill: `READY` (green), `BUSY / RUNNING` (amber), `ERROR` (red).
+- Real-time digital clock and clinical operator profile badge.
 
-*Right column:*
-- Severity gauge (`uigauge`, circular, 0–4 range) with the grade number in
-  the center
-- Confidence bar (`uigauge` linear style, or a manually drawn progress bar
-  via a colored `uipanel` whose width is set programmatically)
-- Referral banner: colored panel (green "no referral needed" / red "refer
-  to ophthalmologist") based on `isReferable(grade)`
-- "Export report" button
+---
 
-## Interaction flow (matches final pipeline order)
-1. User clicks "Load image" → file picker → image loaded (original kept).
-2. **Enhancement runs automatically and immediately** (not gated behind
-   a button) — every image is enhanced first, stepper stage 1 ("Enhance")
-   turns green. Original and enhanced versions both held for later.
-3. **Quality check runs on the enhanced image** — stepper stage 2
-   ("Quality check") turns green, or shows a rejection message +
-   "please retake" if still ungradeable after enhancement.
-4. User clicks "Run screening" → optic disc/fovea localization, Model 1
-   segmentation, Model 2 grading, Grad-CAM run in sequence, stepper
-   updates live through remaining stages, gauge/confidence/banner
-   populate once grading completes.
-5. If referable (grade ≥2): a routing indicator appears — e.g. "Queued
-   for ophthalmologist review" — the telemedicine routing step, shown
-   directly in the UI, not a separate screen.
-6. User clicks "Export report" → PDF generated via `exportReport()`,
-   showing the original image, the enhanced image, Model 1's lesion/
-   vessel/proliferative overlays, Model 2's grade + confidence + Grad-CAM
-   heatmap, and the referral/routing status together.
+## 3. Screening Console Components (`screen`)
 
-## Pipeline stepper — updated stage order
-Enhance → Quality check → Segmentation (Model 1) → Grading (Model 2) →
-Report/Routing — 5 stages instead of the earlier 4, reflecting
-enhancement now running first and unconditionally.
+1. **Patient Information Card** (`PatientInfoCard.jsx`):
+   - Inline editable patient demographic grid: Patient ID, Full Name, Age, Sex, Diabetes Duration.
+   - "Add New Patient" workflow auto-generates sequential IDs and resets form state.
+2. **Fundus Images Card** (`FundusImagesCard.jsx`):
+   - Dedicated `.fundus-eye-panel` containers for Right Eye (OD) and Left Eye (OS).
+   - Black retinal camera viewports (`#000000`, 240px) with eye icons and upload prompt.
+   - Status indicators: "No image selected", "Image added", "Image failed to load".
+   - File picker integration with support for local image drop/selection.
+3. **Screening Result Card** (`ScreeningResultCard.jsx`):
+   - Guarded action: "Run Screening" button disabled with pale pink styling until both OD and OS images are loaded.
+   - Real-time spinner & analysis state.
+   - Bilateral result cards: OD (Right Eye) and OS (Left Eye) with ICDR severity badges (Grade 0: Normal, Grade 1: Mild, Grade 2: Moderate, Grade 3: Severe, Grade 4: PDR).
+   - Clinical Referral Recommendation banner.
+   - Primary action buttons: "View Report" (opens native PDF) and "Send to Doctor" (saves visit and queues for triage).
+4. **Progress Stepper** (`ProgressStepper.jsx`):
+   - 4-phase execution feedback: Preprocessing & Enhancement → DeepLabv3+ Segmentation → ResNet-101 Grading → PDF Generation.
+   - Abort control to safely terminate running daemon operations.
+5. **Results Hub** (`ResultsHub.jsx`):
+   - Interactive Grad-CAM attention blending slider (0% original fundus to 100% full jet-colormap overlay).
+   - Detected lesion chips and radial confidence gauges.
+   - Bilateral side-by-side comparison.
+6. **Patient Records Table** (`RecordsTable.jsx`):
+   - Inset search bar filtering by patient ID and name.
+   - Direct launch links to generated PDF reports and visit directories.
 
-## Segmentation overlay toggles (Model 1 output)
-The overlay badges above the image (previously "Grad-CAM / Vessels /
-Lesions") should now toggle between: Grad-CAM, Vessels, Dark lesions,
-Light lesions, **Proliferative (NV/IRMA)** — the last one specifically
-worth visually distinguishing (e.g. a different overlay color) since
-neovascularization findings are the most clinically urgent signal.
+---
 
-## Component list (MATLAB App Designer UI components, used programmatically)
-- `uifigure`, `uigridlayout`
-- `uiimage` (image display)
-- `uibutton` (load, run, export)
-- `uigauge` (severity, confidence)
-- `uilamp` or colored `uipanel` (status pill, referral banner, stepper
-  circles)
-- `uilabel` (all text)
+## 4. Color Tokens & Palette
 
-## Explicit non-goals for v1
-- No multi-page navigation — sidebar icons are visual only.
-- No drag-and-drop file upload — a standard file picker is enough.
-- No live camera feed integration — static image upload only.
-
-## Build ownership
-Now built by you, solo, alongside the pipeline — see `WORKFLOW.md` Step
-8. Since there's no parallel development happening across two people,
-you can skip the stub-function pattern and wire the UI directly to your
-real functions as each one is finished, rather than building the whole
-UI against stubs first.
-
-## Design bar
-This should look like deployed clinical software, not a coursework demo
-— sidebar navigation, pipeline stepper, gauges, status pills, consistent
-color palette (see the dashboard mockup already agreed). Prioritize the
-pipeline stepper and severity gauge first if time is short — they carry
-most of the "impressive" perception for the least build effort.
+| Token | Hex / RGBA | Role |
+|---|---|---|
+| `--bg` | `#EEF3F9` | App shell backdrop |
+| `--surface` | `#FFFFFF` -> `#F1F5FA` | Inflated frosted glass card surfaces |
+| `--text-primary` | `#17253D` | Primary navy headings & data |
+| `--text-secondary` | `#60708A` | Muted clinical labels & subtitles |
+| `--blue` | `#315DAA` | Primary interactive buttons & OD theme |
+| `--brand` | `#EF5B63` | Alerts, PDR/Severe badges, active nav |
+| `--success` | `#28A88A` | Grade 0 / No DR normal state |
+| `--warning` | `#E7A348` | Cautionary states, Moderate NPDR |

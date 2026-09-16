@@ -1,154 +1,105 @@
-# Architecture — DR screening pipeline
+# Architecture — DR Screening Pipeline & Desktop System
 
-## Pipeline flow (final)
+## High-Level System Architecture
 
 ```
-Input image (original — kept, never overwritten)
-   │
-   ▼
-[1] Enhancement (CLAHE, denoise, color normalization) — MANDATORY, every image
-   │   produces: enhanced image (both original + enhanced kept for report)
-   ▼
-[2] Quality check — run on the ENHANCED image
-   │ ───reject───▶ "Retake" message to UI (if still ungradeable post-enhancement)
-   │ pass
-   ▼
-[3] Optic disc + fovea localization (classical CV, on enhanced image)
-   │
-   ▼
-[4] Model 1 — U-Net (ResNet18 encoder) segmentation
-   │   → vessels, dark lesions, light lesions, proliferative signs (incl. NV)
-   ▼
-[5] Model 2 — ResNet50 severity grading
-   │   → ICDR grade 0–4 + confidence score
-   ▼
-[6] Explainability — Grad-CAM on Model 2
-   │   → heatmap overlay
-   ▼
-[7] Report generation
-   │   → compiles: original image, enhanced image, Model 1 masks,
-   │     Model 2 grade/confidence/Grad-CAM
-   ▼
-[8] Telemedicine routing (rule-based)
-   │   → grade ≥2 → flagged, routed/sent to remote doctor
-   ▼
-UI displays everything; report exportable as PDF
+┌────────────────────────────────────────────────────────────────────────┐
+│                        ELECTRON DESKTOP CLIENT                         │
+│   React 19 + Vite 8 · Clinical Neomorphic UI · Multi-Tab Navigation    │
+│  (Screening Console, Dashboard, Patient Records, Reports, Analytics)   │
+└────────────────────────────────────┬───────────────────────────────────┘
+                                     │
+                 JSON-IPC over stdio (stdin / stdout)
+               Supervised by daemonManager.cjs (watchdog)
+                                     │
+                                     ▼
+┌────────────────────────────────────────────────────────────────────────┐
+│                     MATLAB HEADLESS DAEMON BACKEND                     │
+│                pipelineServer.m / Compiled dr_backend.exe              │
+├────────────────────────────────────────────────────────────────────────┤
+│  [1] Preprocessing & Enhancement (CLAHE, bilateral filter, norm)       │
+│  [2] Quality Assessment (Laplacian variance blur, illumination)        │
+│  [3] Optic Disc & Fovea Localization (Classical CV)                    │
+│  [4] Model 1: DeepLabv3+ ResNet-50 Lesion Segmentation (4 channels)    │
+│  [5] Model 2: ResNet-101 Fusion ICDR 0–4 Severity Grading              │
+│  [6] Explainability: Grad-CAM Saliency Heatmap Generation              │
+│  [7] Automated Report Engine: Vector A4 PDF + Companion PNG            │
+│  [8] Structured File Storage: patient_data/<id>/visits/<timestamp>/    │
+└────────────────────────────────────────────────────────────────────────┘
 ```
 
-**Why enhancement moved before quality check**: enhancement is no longer
-a "fix borderline images only" step — it runs on every image as the
-pipeline's camera-normalization layer (see PROJECT_SPEC.md,
-Camera-agnosticism). Quality is then assessed on the normalized result,
-so a genuinely bad capture (not just a camera-quirky one) is what gets
-rejected, not images that only looked bad due to a particular camera's
-raw output.
+---
 
-## Stage → toolbox/function mapping
+## 1. IPC Communication Protocol
 
-| Stage | Method | MATLAB toolbox / function |
+The Electron host (`desktop/electron/daemonManager.cjs`) spawns either the compiled binary (`dr_backend.exe`) or development runtime (`matlab -batch "run('models/pipelineServer.m');"`). Communication occurs via pure newline-delimited JSON over standard I/O (no HTTP ports or sockets to avoid firewall issues):
+
+- **Frontend to Backend (stdin)**:
+  - `analyze`: `{ "id": "req-1", "action": "analyze", "leftImage": "...", "rightImage": "...", "patientInfo": { ... } }`
+  - `save`: `{ "id": "req-2", "action": "save", "analysisData": { ... }, "patientInfo": { ... } }`
+  - `ping`: `{ "id": "req-3", "action": "ping" }`
+  - `exit`: `{ "id": "req-4", "action": "exit" }`
+
+- **Backend to Frontend (stdout)**:
+  - `ready`: `{ "event": "ready", "gpuAvailable": true, "message": "Models loaded" }`
+  - `progress`: `{ "id": "req-1", "event": "progress", "stage": "Segmentation", "percent": 45 }`
+  - `analysis_complete`: `{ "id": "req-1", "event": "analysis_complete", "result": { "rightEye": {...}, "leftEye": {...} } }`
+  - `saved`: `{ "id": "req-2", "event": "saved", "visitDir": "...", "pdfPath": "..." }`
+  - `error`: `{ "id": "req-1", "event": "error", "code": "ERR_LOAD", "message": "...", "remedy": "..." }`
+
+---
+
+## 2. Pipeline Execution Stages
+
+| Stage | Model / Algorithm | Output & Purpose |
 |---|---|---|
-| 1. Enhancement | CLAHE, denoising, color normalization | `adapthisteq`, `imbilatfilt`/`wiener2`, custom color-jitter-inverse normalization |
-| 2. Quality check | Blur (Laplacian variance), brightness histogram — on enhanced image | Image Processing Toolbox |
-| 3. Optic disc | Brightest circular region | `imbinarize`, `imfindcircles`, `regionprops` |
-| 3. Fovea | Geometric offset from disc center | plain computation |
-| 4. Model 1 | U-Net, ResNet18 encoder, 4 output channels, masked loss | `unet`, Deep Learning Toolbox, custom loss function |
-| 5. Model 2 | ResNet50, transfer learning | Deep Learning Toolbox |
-| 6. Explainability | Grad-CAM on Model 2 | `gradCAM` |
-| 7. Report | Compiles all outputs, both image versions | Custom + PDF export |
-| 8. Referral routing | Threshold rule (grade ≥ 2) | plain logic, no toolbox |
-| UI | Programmatic dashboard app | `uifigure`, `uigridlayout`, `uigauge`, `uibutton`, `uiimage` |
+| **1. Enhancement** | CLAHE, bilateral denoising, color normalization | Uniform camera-agnostic baseline; original kept intact |
+| **2. Quality Check** | Laplacian variance, illumination histogram | Flags ungradeable captures; prompts for recapture |
+| **3. Optic Disc/Fovea** | `imbinarize`, `imfindcircles`, `regionprops` | Anatomical reference for lesion proximity |
+| **4. Segmentation (Model 1)** | DeepLabv3+ (ResNet-50 encoder) | 4-channel masks: vessels, microaneurysms/hemorrhages, exudates, neovascularization |
+| **5. Severity Grading (Model 2)** | ResNet-101 fusion classifier | Bilateral ICDR grades (0 to 4) + softmax confidence |
+| **6. Explainability** | Grad-CAM on ResNet-101 final conv layer | Attention heatmap showing biomarker features driving prediction |
+| **7. Report Generation** | `renderPatientReportPDF.m` | Vector A4 PDF + 150 DPI preview PNG with full clinical metadata |
+| **8. Local Storage** | `savePatientVisit.m` | Offline directory archive containing JSON, masks, heatmaps, PDF |
 
-## Models
+---
 
-**Model 1 — segmentation (vessels + lesions + proliferative signs)**
-- Architecture: U-Net, ResNet18 pretrained encoder (ImageNet weights,
-  fine-tuned)
-- Output: 4 channels — vessels, dark lesions (MA + hemorrhages), light
-  lesions (hard exudates + cotton-wool spots), proliferative signs
-  (neovascularization + IRMA + vitreous hemorrhage)
-- Training data (layered, masked loss per channel):
-  1. **Refined IDRiD** (primary) — supervises all 4 channels
-  2. **e-Ophtha** (secondary) — supervises dark and light lesion
-     channels only
-  3. **DRIVE** (secondary) — supervises vessels only
-  (FGADR was evaluated as a larger proliferative-channel source but
-  access could not be secured in time — dropped; the proliferative
-  channel is trained on Refined IDRiD alone, accepted as a known
-  limitation since referral decisions depend on Model 2, not Model 1)
-- Masked-loss mechanism: each training image carries per-channel
-  validity flags (from the manifest — see below); loss is only computed
-  on channels that image's source dataset actually labeled
-
-**Model 2 — severity grading**
-- Architecture: ResNet50, transfer learning
-- Output: ICDR grade 0–4, softmax confidence
-- Training data: APTOS2019 (primary) + IDRiD Disease Grading (secondary)
-- Test/validation (held out): Messidor-2 + Google adjudicated grades
-
-## Unified data prep (Model 1's 3-dataset merge)
-
-To avoid training code having to handle 3 different formats directly:
-
-1. **Standardize** every dataset to one resolution, one FOV-cropping
-   convention, one mask encoding (4-channel binary stack), using Refined
-   IDRiD's format as the reference standard (smallest but most precise
-   source).
-2. **One manifest CSV** — every training image gets a row with per-
-   channel validity flags:
-
-   | image_path | source | vessels_valid | dark_valid | light_valid | proliferative_valid |
-   |---|---|---|---|---|---|
-   | img001.png | RefinedIDRiD | 1 | 1 | 1 | 1 |
-   | img102.png | DRIVE | 1 | 0 | 0 | 0 |
-   | img210.png | eOphtha | 0 | 1 | 1 | 0 |
-
-3. **One custom MATLAB datastore** reads the manifest, returns
-   `(image, maskStack, validityFlags)` uniformly — this is the only
-   place dataset-specific logic lives (3 small conversion scripts, one
-   per source, all writing into this same manifest/folder structure).
-   Everything downstream (training loop, `runModel1Segmentation`,
-   testing) only ever sees this one unified format.
-
-## File/folder structure (suggested)
+## 3. Directory Layout & Deliverables
 
 ```
-/data
-   /raw                      — original downloads, per dataset (gitignored)
-   /manifest.csv              — unified manifest, see above
-   /prepared                  — standardized images + 4-channel mask stacks
-/functions
-   enhanceImage.m
-   qualityCheck.m
-   findOpticDisc.m
-   findFovea.m
-/data_prep
-   prepareRefinedIDRiD.m
-   prepareEOphtha.m
-   prepareDRIVE.m
-   buildManifest.m
-/models
-   trainModel1_unet.m
-   trainModel2_resnet50.m
-   model1_unet.mat
-   model2_resnet50.mat
-/pipeline
-   runModel1Segmentation.m
-   gradeSeverity.m
-   isReferable.m
-   routeForReview.m
-/explainability
-   runGradCAM.m
-/reporting
-   exportReport.m
-/ui
-   ScreeningApp.m
-/docs
+d:/Projects/dr-screening/
+├── desktop/                         # Electron + React + Vite desktop app
+│   ├── electron/                    # Main process, preload bridge, daemon supervisor
+│   │   ├── main.cjs
+│   │   ├── preload.cjs
+│   │   └── daemonManager.cjs
+│   ├── src/
+│   │   ├── components/              # Neumorphic React UI views & components
+│   │   │   ├── Sidebar.jsx
+│   │   │   ├── TopBar.jsx
+│   │   │   ├── Logo.jsx
+│   │   │   ├── PatientInfoCard.jsx
+│   │   │   ├── FundusImagesCard.jsx
+│   │   │   ├── ScreeningResultCard.jsx
+│   │   │   ├── ProgressStepper.jsx
+│   │   │   ├── ResultsHub.jsx
+│   │   │   ├── RecordsTable.jsx
+│   │   │   ├── DashboardView.jsx
+│   │   │   ├── ReportsView.jsx
+│   │   │   ├── AnalyticsView.jsx
+│   │   │   ├── DoctorResponsesView.jsx
+│   │   │   └── SettingsView.jsx
+│   │   ├── index.css                # Clinical neomorphic design tokens & shadows
+│   │   └── App.jsx
+│   └── dist_electron/               # Packaged Windows installer (DR-Detect-1.0.0-x64.exe)
+├── models/                          # MATLAB core models & server
+│   ├── pipelineServer.m             # Stdio JSON-IPC daemon loop
+│   ├── analyzePatientVisit.m        # Bilateral analysis coordinator
+│   ├── renderPatientReportPDF.m     # Vector A4 PDF generator
+│   ├── savePatientVisit.m           # Offline visit serializer
+│   ├── model1_final.mat             # DeepLabv3+ network weights
+│   └── model2_final_weighted.mat    # ResNet-101 network weights
+├── functions/                       # Classical CV utilities
+├── patient_data/                    # Local patient records archive
+└── docs/                            # Documentation
 ```
-
-## Data flow contract
-Every stage takes and returns plain, documented types — see
-`FUNCTION_CONTRACTS.md`. No stage assumes another stage's internal
-state; everything passes through arguments/return values so stages can
-be tested independently. Now that you're building both pipeline and UI
-solo, you can wire the UI directly to real functions without needing
-the stub-function pattern (that was only for parallel development).
