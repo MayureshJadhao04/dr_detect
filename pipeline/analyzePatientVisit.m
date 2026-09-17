@@ -41,7 +41,11 @@ function eye = runOneEye(net1, net2, imgPath, gradeNames, referralThreshold)
 
     gradeLabel = sprintf('Level %d - %s', predictedGrade, gradeNames{predictedGrade+1});
 
-    if predictedGrade >= referralThreshold
+    % Confidence-based clinical deferral: if confidence < 65%, refer for manual clinician review
+    CONFIDENCE_DEFERRAL_THRESHOLD = 0.65;
+    if confidence < CONFIDENCE_DEFERRAL_THRESHOLD
+        referral = 'REFER (Low Confidence / Clinical Deferral)';
+    elseif predictedGrade >= referralThreshold
         referral = 'REFER';
     else
         referral = 'Routine Follow-up';

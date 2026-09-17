@@ -15,6 +15,9 @@ function pipelineServer()
     repoRoot = fullfile(thisDir, '..');
     addpath(fullfile(repoRoot, 'functions'));
     addpath(fullfile(repoRoot, 'models'));
+    addpath(fullfile(repoRoot, 'pipeline'));
+    addpath(fullfile(repoRoot, 'explainability'));
+    addpath(fullfile(repoRoot, 'reporting'));
 
     % Default paths (can be overridden via set_config)
     dataDir = fullfile(repoRoot, 'patient_data');
@@ -183,9 +186,11 @@ function pipelineServer()
                         'rawPath', rightRawPath, ...
                         'heatmapPath', rightHeatmapPath);
 
-                    % Overall diagnosis
+                    % Overall diagnosis (considers grade and confidence-based deferral)
                     maxGrade = max(analysis.leftEye.predictedGrade, analysis.rightEye.predictedGrade);
-                    if maxGrade >= 2
+                    isLeftRefer = contains(upper(analysis.leftEye.referral), 'REFER');
+                    isRightRefer = contains(upper(analysis.rightEye.referral), 'REFER');
+                    if maxGrade >= 2 || isLeftRefer || isRightRefer
                         summaryData.overallReferral = 'REFER TO RETINA SPECIALIST';
                         summaryData.isReferable = true;
                     else
