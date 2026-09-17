@@ -17,7 +17,7 @@
 Every bilateral screening automatically produces an archival vector PDF and preview PNG formatted for immediate clinician review and physical signature:
 
 <p align="center">
-  <img src="patient_data/P0001/visits/20260911_073000/report.png" alt="Clinical Report Example" width="650" />
+  <img src="docs/assets/sample_report.png" alt="Clinical Report Example" width="650" />
 </p>
 
 ### 2. Multi-Modal Retinal Attention Heatmaps (Grad-CAM)
