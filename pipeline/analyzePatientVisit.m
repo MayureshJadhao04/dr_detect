@@ -39,16 +39,37 @@ function eye = runOneEye(net1, net2, imgPath, gradeNames, referralThreshold)
         confidence = confidence / 100;   % defensive, matches earlier pipeline guard
     end
 
-    gradeLabel = sprintf('Level %d - %s', predictedGrade, gradeNames{predictedGrade+1});
+    % Rule-based safety escalation protocol (empirically calibrated prototype thresholds):
+    % If Model 1 detects Neovascularization (>0.05%) or extensive hemorrhage (>0.5%),
+    % escalate referral to prevent false negatives on severe pathology.
+    totalPx = size(maskProb, 1) * size(maskProb, 2);
+    hasHighNV = false;
+    hasHighHeme = false;
+    if size(maskProb, 3) >= 4
+        hasHighNV = (sum(maskProb(:,:,4) >= 0.5, 'all') / totalPx) > 0.0005;
+    end
+    if size(maskProb, 3) >= 2
+        hasHighHeme = (sum(maskProb(:,:,2) >= 0.5, 'all') / totalPx) > 0.005;
+    end
 
-    % Confidence-based clinical deferral: if confidence < 65%, refer for manual clinician review
     CONFIDENCE_DEFERRAL_THRESHOLD = 0.65;
-    if confidence < CONFIDENCE_DEFERRAL_THRESHOLD
+    if hasHighNV || hasHighHeme
+        referral = 'REFER (Safety Protocol: High Lesion Density)';
+        if predictedGrade < referralThreshold
+            predictedGrade = max(predictedGrade, 2);
+            gradeLabel = sprintf('Level %d - %s (Escalated)', predictedGrade, gradeNames{predictedGrade+1});
+        else
+            gradeLabel = sprintf('Level %d - %s', predictedGrade, gradeNames{predictedGrade+1});
+        end
+    elseif confidence < CONFIDENCE_DEFERRAL_THRESHOLD
         referral = 'REFER (Low Confidence / Clinical Deferral)';
+        gradeLabel = sprintf('Level %d - %s', predictedGrade, gradeNames{predictedGrade+1});
     elseif predictedGrade >= referralThreshold
         referral = 'REFER';
+        gradeLabel = sprintf('Level %d - %s', predictedGrade, gradeNames{predictedGrade+1});
     else
         referral = 'Routine Follow-up';
+        gradeLabel = sprintf('Level %d - %s', predictedGrade, gradeNames{predictedGrade+1});
     end
 
     eye.heatmap        = heatmap;

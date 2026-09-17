@@ -111,12 +111,21 @@ imgEnhanced = enhanceImage(imgRaw);   % Model 1 input only -- native resolution
 % and image spatially aligned in the fused input.
 % NOTE: 0.5 threshold is UNCONFIRMED against masks_cache\'s actual
 % build -- see "SECOND ASSUMPTION FLAGGED" above. ---
-maskBinary = maskProb >= 0.5;
-mask224 = false(224, 224, size(maskBinary,3));
-for c = 1:size(maskBinary,3)
-    [~, mask224(:,:,c)] = resizeWithPad(imgRaw, maskBinary(:,:,c), [224 224]);
+% --- Continuous soft probability maps: preserve subtle lesion likelihoods [0.0, 1.0]
+% without hard 0.5 cutoff truncation, keeping scale aligned with imgRaw letterbox ---
+[hRaw, wRaw, ~] = size(imgRaw);
+scaleP = min(224/hRaw, 224/wRaw);
+newH = round(hRaw * scaleP);
+newW = round(wRaw * scaleP);
+yOffP = floor((224 - newH) / 2);
+xOffP = floor((224 - newW) / 2);
+
+mask224 = zeros(224, 224, size(maskProb,3), 'single');
+for c = 1:size(maskProb,3)
+    channelResized = imresize(single(maskProb(:,:,c)), [newH newW], 'bilinear');
+    mask224(yOffP+1:yOffP+newH, xOffP+1:xOffP+newW, c) = channelResized;
 end
-mask224 = single(mask224);
+mask224 = min(max(mask224, 0), 1);
 
 % --- resize the RAW (non-enhanced) image to 224x224 for the Model 2
 % input, using resizeWithPad to match prepareModel2Data.m exactly

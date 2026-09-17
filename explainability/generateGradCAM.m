@@ -68,10 +68,26 @@ if ~any(strcmp(layerNames, reductionLayer))
         'Could not find a layer named ''fc1000''. Check {net2.Layers.Name}.');
 end
 
-% --- forward pass for the prediction itself ---
-scores = predict(net2, Xdl);
-scores = extractdata(scores);
-scores = scores(:)';              % force to 1x5 row regardless of orientation
+% --- forward pass with Prediction Test-Time Augmentation (TTA) ---
+% 1. Canonical upright orientation
+scores1 = predict(net2, Xdl);
+scores1 = extractdata(scores1);
+scores1 = scores1(:)';
+
+% 2. Vertical flip pass
+Xdl_v = dlarray(flip(X, 1), 'SSCB');
+scores2 = predict(net2, Xdl_v);
+scores2 = extractdata(scores2);
+scores2 = scores2(:)';
+
+% 3. Horizontal flip pass
+Xdl_h = dlarray(flip(X, 2), 'SSCB');
+scores3 = predict(net2, Xdl_h);
+scores3 = extractdata(scores3);
+scores3 = scores3(:)';
+
+% Ensembled TTA distribution (variance-smoothed probability vector)
+scores = (scores1 + scores2 + scores3) / 3;
 scoresAll = scores;
 [confidence, idx] = max(scores);
 predictedGrade = idx - 1;
