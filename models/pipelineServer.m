@@ -45,18 +45,47 @@ function pipelineServer()
     m1 = load(model1Path, 'net');
     net1 = m1.net;
 
-    % Load Model 2
-    model2Path = fullfile(thisDir, 'model2_final_weighted.mat');
-    if ~isfile(model2Path)
+    % Load Model 2 (prefer 384px retrained model, fallback to 224px baseline)
+    model2_384Path = fullfile(thisDir, 'model2_final_384.mat');
+    model2_224Path = fullfile(thisDir, 'model2_final_weighted.mat');
+    model2Version = '224px-baseline';
+
+    if isfile(model2_384Path)
+        m2 = load(model2_384Path);
+        if isfield(m2, 'net2trained')
+            net2 = m2.net2trained;
+        elseif isfield(m2, 'net2')
+            net2 = m2.net2;
+        elseif isfield(m2, 'net2_384')
+            net2 = m2.net2_384;
+        end
+        model2Version = '384px-focal-ordinal';
+    elseif isfile(model2_224Path)
+        m2 = load(model2_224Path, 'net2trained');
+        net2 = m2.net2trained;
+        model2Version = '224px-weighted';
+    else
         sendError('init', 'FILE_NOT_FOUND', ...
-            ['Model 2 weights not found: ' model2Path], 'Verify model2_final_weighted.mat exists in models/');
+            'Model 2 weights not found.', 'Verify model2_final_384.mat or model2_final_weighted.mat exists in models/');
         return;
     end
-    m2 = load(model2Path, 'net2trained');
-    net2 = m2.net2trained;
+
+    % Load Late-Fusion Hybrid Feature Bridge (if available)
+    bridgePath = fullfile(thisDir, 'late_fusion_bridge.mat');
+    bridgeModel = [];
+    if isfile(bridgePath)
+        try
+            bData = load(bridgePath, 'bridgeModel');
+            bridgeModel = bData.bridgeModel;
+            model2Version = [model2Version ' + hybrid-bridge'];
+        catch
+            bridgeModel = [];
+        end
+    end
 
     % Handshake ready
-    sendJson(struct('event', 'ready', 'version', '1.0', ...
+    sendJson(struct('event', 'ready', 'version', '1.1', ...
+        'model2Version', model2Version, ...
         'gpuAvailable', gpuAvail, 'dataDir', dataDir));
 
     % State
@@ -143,8 +172,8 @@ function pipelineServer()
                     % Progress: Model 2 & Grad-CAM
                     sendProgress(reqId, 'Model 2 Severity & Grad-CAM', 80);
 
-                    % Execute full bilateral analysis
-                    analysis = analyzePatientVisit(net1, net2, leftPath, rightPath);
+                    % Execute full bilateral analysis (with Hybrid Feature Bridge if available)
+                    analysis = analyzePatientVisit(net1, net2, leftPath, rightPath, bridgeModel);
                     lastAnalysis = analysis;
 
                     % Export heatmaps and raw thumbs for UI visualization

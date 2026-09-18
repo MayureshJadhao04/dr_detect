@@ -113,51 +113,47 @@ imgEnhanced = enhanceImage(imgRaw);   % Model 1 input only -- native resolution
 % build -- see "SECOND ASSUMPTION FLAGGED" above. ---
 % --- Continuous soft probability maps: preserve subtle lesion likelihoods [0.0, 1.0]
 % without hard 0.5 cutoff truncation, keeping scale aligned with imgRaw letterbox ---
+% Determine Model 2 input resolution dynamically (handles 384x384 and 224x224)
+tgtSize = [224 224];
+try
+    if isprop(net2, 'Layers') && ~isempty(net2.Layers)
+        inSz = net2.Layers(1).InputSize;
+        tgtSize = inSz(1:2);
+    end
+catch
+    tgtSize = [224 224];
+end
+tgtH = tgtSize(1);
+tgtW = tgtSize(2);
+
 [hRaw, wRaw, ~] = size(imgRaw);
-scaleP = min(224/hRaw, 224/wRaw);
+scaleP = min(tgtH/hRaw, tgtW/wRaw);
 newH = round(hRaw * scaleP);
 newW = round(wRaw * scaleP);
-yOffP = floor((224 - newH) / 2);
-xOffP = floor((224 - newW) / 2);
+yOffP = floor((tgtH - newH) / 2);
+xOffP = floor((tgtW - newW) / 2);
 
-mask224 = zeros(224, 224, size(maskProb,3), 'single');
+maskInput = zeros(tgtH, tgtW, size(maskProb,3), 'single');
 for c = 1:size(maskProb,3)
     channelResized = imresize(single(maskProb(:,:,c)), [newH newW], 'bilinear');
-    mask224(yOffP+1:yOffP+newH, xOffP+1:xOffP+newW, c) = channelResized;
+    maskInput(yOffP+1:yOffP+newH, xOffP+1:xOffP+newW, c) = channelResized;
 end
-mask224 = min(max(mask224, 0), 1);
+maskInput = min(max(maskInput, 0), 1);
 
-% --- resize the RAW (non-enhanced) image to 224x224 for the Model 2
-% input, using resizeWithPad to match prepareModel2Data.m exactly
-% (aspect-preserving pad, not a plain squish-resize). Model 2 never
-% saw enhanced images during training, so no enhancement is applied
-% here. ---
-[imgResized224, ~] = resizeWithPad(imgRaw, [], [224 224]);
-imgResized224 = single(imgResized224);
+% Resize RAW image with aspect padding to match Model 2 input size
+[imgResized, ~] = resizeWithPad(imgRaw, [], [tgtH tgtW]);
+imgResized = single(imgResized);
 
-% --- track the real (non-padding) region so display code can crop out
-% the letterboxed border, where Grad-CAM has no real image content to
-% explain and can show tile-seam artifacts (see notes above). Geometry
-% mirrors resizeWithPad's own scale/offset computation exactly. ---
-[hRaw, wRaw, ~] = size(imgRaw);
-scaleP = min(224/hRaw, 224/wRaw);
-validH = round(hRaw * scaleP);
-validW = round(wRaw * scaleP);
-yOffP = floor((224 - validH) / 2);
-xOffP = floor((224 - validW) / 2);
-validRegion = false(224, 224);
-validRegion(yOffP+1:yOffP+validH, xOffP+1:xOffP+validW) = true;
-
-% --- extend validRegion using actual pixel content, not just padding
-% geometry -- raw fundus images have black corners outside the circular
-% capture area (camera artifact, not resizeWithPad padding), which show
-% the same zero-content Grad-CAM artifact as the letterbox border. ---
-grayImg = mean(imgResized224, 3);
-contentMask = grayImg > 10;   % threshold: near-black = no tissue
+% Valid region calculation
+validRegion = false(tgtH, tgtW);
+validRegion(yOffP+1:yOffP+newH, xOffP+1:xOffP+newW) = true;
+grayImg = mean(imgResized, 3);
+contentMask = grayImg > 10;
 validRegion = validRegion & contentMask;
 
-% --- Grad-CAM on Model 2 ---
+% Grad-CAM on Model 2
 [heatmap, predictedGrade, confidence, scoresAll] = ...
-    generateGradCAM(net2, imgResized224, mask224);
+    generateGradCAM(net2, imgResized, maskInput);
+imgResized224 = imgResized;
 
 end

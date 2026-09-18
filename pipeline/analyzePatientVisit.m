@@ -1,37 +1,66 @@
-function analysis = analyzePatientVisit(net1, net2, leftImgPath, rightImgPath)
+function analysis = analyzePatientVisit(net1, net2, leftImgPath, rightImgPath, bridgeModel)
 % analyzePatientVisit  Runs Model 1 + Model 2 + Grad-CAM ONCE per eye and
 % returns everything needed to (a) display results on screen and (b),
 % separately, save/render a report later -- WITHOUT re-running inference.
 %
-%   analysis = analyzePatientVisit(net1, net2, leftImgPath, rightImgPath)
-%
-% analysis.rightEye / analysis.leftEye each contain:
-%   heatmap, predictedGrade, confidence, gradeLabel, referral,
-%   maskProb, imgResized224, validRegion, imgRaw, imgEnhanced,
-%   lesionText (cell array), quality
-%
-% This is the function the "Analyse" button should call. Show
-% analysis.rightEye.gradeLabel / .confidence / .referral / .heatmap etc.
-% on screen. When the clinician then clicks "Save"/"Send Report", pass
-% this SAME struct into savePatientVisit() -- do not call this function
-% again, it would just re-run inference for no reason.
+%   analysis = analyzePatientVisit(net1, net2, leftImgPath, rightImgPath, bridgeModel)
+
+    if nargin < 5
+        bridgeModel = [];
+    end
 
     REFERRAL_THRESHOLD = 2;
     gradeNames = {'No DR','Mild NPDR','Moderate NPDR','Severe NPDR','Proliferative DR'};
 
-    analysis.rightEye = runOneEye(net1, net2, rightImgPath, gradeNames, REFERRAL_THRESHOLD);
-    analysis.leftEye  = runOneEye(net1, net2, leftImgPath,  gradeNames, REFERRAL_THRESHOLD);
+    analysis.rightEye = runOneEye(net1, net2, rightImgPath, gradeNames, REFERRAL_THRESHOLD, bridgeModel);
+    analysis.leftEye  = runOneEye(net1, net2, leftImgPath,  gradeNames, REFERRAL_THRESHOLD, bridgeModel);
     analysis.leftImgPath  = leftImgPath;
     analysis.rightImgPath = rightImgPath;
 end
 
 
-function eye = runOneEye(net1, net2, imgPath, gradeNames, referralThreshold)
-    [heatmap, predictedGrade, confidence, ~, maskProb, imgResized224, validRegion] = ...
+function eye = runOneEye(net1, net2, imgPath, gradeNames, referralThreshold, bridgeModel)
+    [heatmap, predictedGrade, confidence, scoresAll, maskProb, imgResized224, validRegion] = ...
         generateGradCAMForImage(net1, net2, imgPath);
 
     imgRaw = imread(imgPath);
     imgEnhanced = enhanceImage(imgRaw);
+
+    % Late-Fusion Hybrid Feature Bridge (if available)
+    if ~isempty(bridgeModel) && isfield(bridgeModel, 'classifier')
+        try
+            darkMask = maskProb(:,:,2);
+            [H, W] = size(darkMask);
+            hMid = floor(H/2); wMid = floor(W/2);
+            q1 = darkMask(1:hMid, 1:wMid);
+            q2 = darkMask(1:hMid, wMid+1:end);
+            q3 = darkMask(hMid+1:end, 1:wMid);
+            q4 = darkMask(hMid+1:end, wMid+1:end);
+            qCount = single((sum(q1(:) > 0.20) > 10) + (sum(q2(:) > 0.20) > 10) + ...
+                            (sum(q3(:) > 0.20) > 10) + (sum(q4(:) > 0.20) > 10));
+            aHeme = single(sum(darkMask(:) > 0.20) / (H * W));
+            cc = bwconncomp(darkMask > 0.25);
+            props = regionprops(cc, 'Area');
+            areas = [props.Area];
+            nMA = single(sum(areas <= 25));
+            prolifMask = maskProb(:,:,4);
+            fNV = single(any(prolifMask(:) > 0.20));
+
+            clinRaw = [nMA, aHeme, qCount, fNV];
+            clinNorm = (clinRaw - bridgeModel.mu) ./ bridgeModel.sigma;
+
+            if size(scoresAll, 1) > 1
+                scoresRow = scoresAll';
+            else
+                scoresRow = scoresAll;
+            end
+            feat = [single(scoresRow), single(clinNorm)];
+            predBridge = predict(bridgeModel.classifier, feat);
+            predictedGrade = double(predBridge);
+        catch
+            % Fall back to CNN prediction if stacking encounters any issue
+        end
+    end
 
     predictedGrade = max(0, min(4, round(double(predictedGrade))));
     confidence = max(0, min(1, double(confidence)));

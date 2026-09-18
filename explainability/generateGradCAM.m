@@ -132,7 +132,8 @@ map = max(map, 0);          % clip any negative values from content cells below 
 % normalization fix above exists to clean up. Bilinear doesn't ring
 % the same way, and the clamp is a free correctness guarantee on top
 % of it.
-heatmap = imresize(map, [224 224], 'bilinear');
+[inH, inW, ~] = size(imgRGB224);
+heatmap = imresize(map, [inH inW], 'bilinear');
 heatmap = min(max(heatmap, 0), 1);
 
 % ADDITIONAL FIX: the erosion above operates on the CAM's NATIVE grid,
