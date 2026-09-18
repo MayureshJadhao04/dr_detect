@@ -20,11 +20,12 @@
 │  [1] Preprocessing & Enhancement (CLAHE, bilateral filter, norm)       │
 │  [2] Quality Assessment (Laplacian variance blur, illumination)        │
 │  [3] Optic Disc & Fovea Localization (Classical CV)                    │
-│  [4] Model 1: DeepLabv3+ ResNet-50 Lesion Segmentation (4 channels)    │
-│  [5] Model 2: ResNet-101 Fusion ICDR 0–4 Severity Grading              │
-│  [6] Explainability: Grad-CAM Saliency Heatmap Generation              │
-│  [7] Automated Report Engine: Vector A4 PDF + Companion PNG            │
-│  [8] Structured File Storage: patient_data/<id>/visits/<timestamp>/    │
+│  [4] Model 1: DeepLabv3+ ResNet-18 Lesion Segmentation (4 channels)    │
+│  [5] Model 2: 384px ResNet-101 Fusion ICDR 0–4 Severity Grading         │
+│  [6] Hybrid Feature Bridge: Late-Fusion 4-2-1 Clinical Stacking         │
+│  [7] Explainability: Grad-CAM Saliency Heatmap Generation              │
+│  [8] Automated Report Engine: Vector A4 PDF + Companion PNG            │
+│  [9] Structured File Storage: patient_data/<id>/visits/<timestamp>/    │
 └────────────────────────────────────────────────────────────────────────┘
 ```
 
@@ -56,8 +57,9 @@ The Electron host (`desktop/electron/daemonManager.cjs`) spawns either the compi
 | **1. Enhancement** | CLAHE, bilateral denoising, color normalization | Uniform camera-agnostic baseline; original kept intact |
 | **2. Quality Check** | Laplacian variance, illumination histogram | Flags ungradeable captures; prompts for recapture |
 | **3. Optic Disc/Fovea** | `imbinarize`, `imfindcircles`, `regionprops` | Anatomical reference for lesion proximity |
-| **4. Segmentation (Model 1)** | DeepLabv3+ (ResNet-50 encoder) | 4-channel masks: vessels, microaneurysms/hemorrhages, exudates, neovascularization |
-| **5. Severity Grading (Model 2)** | ResNet-101 fusion classifier | Bilateral ICDR grades (0 to 4) + softmax confidence |
+| **4. Segmentation (Model 1)** | DeepLabv3+ (ResNet-18 encoder) | 4-channel continuous soft probability maps: vessels, microaneurysms/hemorrhages, exudates, neovascularization |
+| **5. Severity Grading (Model 2)** | 384px ResNet-101 fusion classifier (Focal + Ordinal Loss) | Bilateral ICDR grades (0 to 4) + softmax confidence |
+| **5b. Hybrid Bridge** | Late-fusion stacking (5 CNN softmax + 4 clinical biomarkers) | Final fused grade via 4-2-1 clinical rule |
 | **6. Explainability** | Grad-CAM on ResNet-101 final conv layer | Attention heatmap showing biomarker features driving prediction |
 | **7. Report Generation** | `renderPatientReportPDF.m` | Vector A4 PDF + 150 DPI preview PNG with full clinical metadata |
 | **8. Local Storage** | `savePatientVisit.m` | Offline directory archive containing JSON, masks, heatmaps, PDF |
@@ -91,14 +93,16 @@ d:/Projects/dr-screening/
 │   │   │   └── SettingsView.jsx
 │   │   ├── index.css                # Clinical neomorphic design tokens & shadows
 │   │   └── App.jsx
-│   └── dist_electron/               # Packaged Windows installer (DR-Detect-1.0.0-x64.exe)
+│   └── dist_electron/               # Packaged Windows installer (DR-Detect-1.1.0-x64.exe)
 ├── models/                          # MATLAB core models & server
 │   ├── pipelineServer.m             # Stdio JSON-IPC daemon loop
 │   ├── analyzePatientVisit.m        # Bilateral analysis coordinator
 │   ├── renderPatientReportPDF.m     # Vector A4 PDF generator
 │   ├── savePatientVisit.m           # Offline visit serializer
 │   ├── model1_final.mat             # DeepLabv3+ network weights
-│   └── model2_final_weighted.mat    # ResNet-101 network weights
+│   ├── model2_final_384.mat         # 384px ResNet-101 network weights (v1.1.0)
+│   ├── late_fusion_bridge.mat       # Hybrid Feature Bridge stacking model
+│   └── model2_final_weighted.mat    # 224px ResNet-101 baseline (optional)
 ├── functions/                       # Classical CV utilities
 ├── patient_data/                    # Local patient records archive
 └── docs/                            # Documentation
