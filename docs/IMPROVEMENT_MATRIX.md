@@ -23,15 +23,25 @@ Empirically measured on the held-out validation set ($N=516$ images):
 
 | Experimental Iteration | 5-Class Accuracy | Referable Sensitivity | Referable Specificity | Clinical Impact |
 |---|:---:|:---:|:---:|---|
-| **1. Baseline (Direct pass)** | **73.64%** | **93.39%** | **88.58%** | Standard single-view inference baseline |
-| **2. + Prediction TTA (3-Fold)** | **73.26%** | **94.27%** | **89.27%** | **+0.88% Sensitivity, +0.69% Specificity** (fewer missed referable cases & lower false alarms) |
+| **1. Baseline (Direct pass, 224px)** | **73.64%** | **93.39%** | **88.58%** | Standard single-view inference baseline |
+| **2. + Prediction TTA (3-Fold, 224px)** | **73.26%** | **94.27%** | **89.27%** | **+0.88% Sensitivity, +0.69% Specificity** (fewer missed referable cases) |
 | **3. + Safety Escalation Protocol** | **73.26%** | **94.27%** | **89.27%** | Safety net: NV ($>0.05\%$) or Hemorrhage ($>0.5\%$) forces specialist triage |
+| **4. 384px Retrained (Focal + Ordinal)** | **79.07%** | **97.36%** | **89.62%** | **+5.43% Accuracy, +3.97% Sensitivity** ($384\text{px}$ microaneurysm resolution + focal minority weighting) |
+| **5. + Hybrid Feature Bridge (Late Fusion)** | **79.46%** | **97.36%** | **89.62%** | Stacking 5 CNN probabilities with 4-2-1 clinical quadrant biomarkers |
 
 ---
 
-## 3. Fast-Track Strategy: 2-Tier Execution
+## 3. Implementation Status
 
-* **Tier 1 (Deploy & Submit Immediately):**
-  Implement fixes 1A, 2A, and 3A. Run ablation measurement. Recompile `dr_backend.exe` and `DR-Detect-1.0.0-x64.exe` once. Lock in SIH submission before 500-quota cap.
-* **Tier 2 (Optional Post-Submission Experimentation):**
-  Only if time permits before Sept 30: run one single combined retraining run ($384 \times 384$ + Focal Loss + Ordinal Loss + targeted augmentation).
+* **Tier 1 (Completed & Shipped Live in Release v1.0.0)**:
+  - Continuous Soft Lesion Maps (`generateGradCAMForImage.m`)
+  - 3-Fold Prediction TTA (`generateGradCAM.m`)
+  - Safety Escalation Protocol (`analyzePatientVisit.m`)
+  - Windows Installer `DR-Detect-1.0.0-x64.exe` deployed to GitHub Releases.
+
+* **Tier 2 (Completed & Evaluated on RTX GPU)**:
+  - $384 \times 384$ raw fundus dataset + soft continuous masks + 4-2-1 quadrant biomarker cache generated.
+  - Model 2 retrained on RTX 5050 GPU with Focal Loss ($\gamma = 2.0$) + Ordinal Distance Loss ($\lambda = 0.20$).
+  - Late-Fusion Hybrid Feature Bridge trained and validated: **79.46% Multi-class Accuracy, 97.36% Referable Sensitivity**.
+  - Documented in `docs/FINAL_RETRAIN_RESULTS.md`.
+
