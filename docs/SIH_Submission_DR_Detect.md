@@ -38,11 +38,13 @@ The system provides two complementary forms of clinical transparency. First, Mod
 
 **Clinical Safety System**
 
-Three independent fail-safe mechanisms guard against false negatives:
+To prevent missed pathology in unassisted rural settings, the referral pipeline enforces three primary fail-safe mechanisms alongside an exploratory lesion heuristic:
 
-1. Confidence deferral — if Model 2's softmax confidence falls below 65%, the system flags the case as "Refer: Low Confidence / Clinical Deferral" instead of forcing an uncertain prediction.
-2. Lesion-based safety escalation — if Model 1 detects high neovascularization coverage (>0.05%) or extensive hemorrhage (>0.5%), the referral is escalated regardless of Model 2's grade.
-3. Bilateral worst-case aggregation — if either eye triggers referral, the patient is referred.
+1. Confidence-based deferral gate — The 65% threshold is an engineering deferral threshold rather than a clinically validated cutoff. It was selected conservatively to avoid forcing automated decisions when the classifier's probability mass is substantially distributed across competing grades. If top-1 softmax confidence falls below 65%, the case is flagged as "Refer: Low Confidence / Clinical Deferral" for human specialist review. It has not yet been externally calibrated on an independent clinical cohort.
+2. Hemorrhage density escalation — If Model 1 detects extensive dark lesion / hemorrhage coverage exceeding 0.5% of the retinal area, referral is escalated to at least Grade 2 regardless of Model 2's output, preventing under-triage when severe intraretinal bleeding coexists with optical blur.
+3. Bilateral worst-case aggregation — Because diabetic retinopathy is a bilateral disease that frequently manifests asymmetrically, patient-level triage is governed by the more severely affected eye. If either eye triggers referral through disease grade, confidence deferral, or lesion density, the entire screening visit escalates to specialist referral.
+
+*Exploratory safety heuristic:* In addition to these three primary fail-safes, if Model 1 detects neovascularization channel activation exceeding 0.05% coverage, the system triggers a precautionary escalation flag. As documented below, this is an exploratory safeguard rather than a validated detector, reflecting data scarcity in public PDR annotations.
 
 **Desktop Application**
 
@@ -67,7 +69,7 @@ To substantiate the full diagnostic pipeline, we evaluate both the upstream lesi
 | Light Lesions (Exudates, Cotton-Wool) | 88.18% | 98.91% | 0.4197 | 0.2655 | 655 / 2,215 |
 | Proliferative (Neovascularization)* | 0.83% | 100.00% | 0.0163 | 0.0082 | 49 / 925 |
 
-*Note on Proliferative channel: The near-zero sensitivity (0.83%) and low Dice score (0.0163) reflect severe ground-truth scarcity in public annotations (only 49 positive validation patches and 5,842 positive pixels total across 479 training images). Consequently, Model 1 cannot function as an autonomous segmenter for neovascularization. Instead, its output serves purely as a conservative heuristic warning trigger (>0.05% coverage) for safety escalation, while primary Grade 4 PDR detection relies on Model 2's holistic 7-channel classifier (which successfully identified 43 of 44 PDR cases for referral).
+*Note on Proliferative channel: The near-zero sensitivity (0.83%) and low Dice score (0.0163) reflect severe ground-truth scarcity in public annotations: the training set contains only 5,842 positive neovascular pixels across 479 images, and the held-out validation set contains only 49 positive patches (out of 925 patches evaluated for this channel). Consequently, Model 1 cannot function as an autonomous segmenter for neovascularization. Instead, its output serves purely as an exploratory heuristic warning trigger (>0.05% coverage) for safety escalation, while primary Grade 4 PDR detection relies on Model 2's holistic 7-channel classifier (which successfully identified 43 of 44 PDR cases for referral).
 
 High specificity across all channels (>95% to 99.9%) ensures that false lesion artifacts do not corrupt Model 2's fused inputs. High sensitivity on vessels (89.43%) and light lesions (88.18%) enables reliable vascular tracking and exudate localization. Dark lesion sensitivity (63.46%) captures the majority of microaneurysm clusters and blot hemorrhages while suppressing background noise.
 
@@ -82,7 +84,7 @@ Zero patients with Severe NPDR (Grade 3) were misclassified as non-referable (0%
 
 **Known Limitations**
 
-All metrics are from the internal APTOS+IDRiD validation split — no external clinical validation on independent benchmarks (e.g., Messidor-2) or prospective PHC data has been conducted yet. DME (Diabetic Macular Edema) is not detected; the report explicitly states "DME: Not assessed." Grade 1 (Mild NPDR) recall is 48.98% — distinguishing isolated microaneurysms from a clean fundus is difficult even for expert graders, who agree only 60–70% of the time on these borderline cases. Training data is limited to public datasets with heavy class imbalance; in particular, ground-truth masks for neovascularization are scarce (only 49 positive validation patches), rendering Model 1's proliferative channel an uncalibrated heuristic rather than a validated segmenter.
+All metrics are from the internal APTOS+IDRiD validation split — no external clinical validation on independent benchmarks (e.g., Messidor-2) or prospective PHC data has been conducted yet. DME (Diabetic Macular Edema) is not detected; the report explicitly states "DME: Not assessed." Grade 1 (Mild NPDR) recall is 48.98% — distinguishing isolated microaneurysms from a clean fundus is difficult even for expert graders, who agree only 60–70% of the time on these borderline cases. Training data is limited to public datasets with heavy class imbalance; in particular, ground-truth annotations for neovascularization are scarce (5,842 positive pixels across 479 training images; 49 positive patches in validation), rendering Model 1's proliferative channel an uncalibrated heuristic rather than a validated segmenter.
 
 **Planned Future Work**
 
