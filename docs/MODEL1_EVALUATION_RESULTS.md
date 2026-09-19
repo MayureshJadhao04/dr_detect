@@ -35,6 +35,7 @@
 4. **Dark Lesion Detection (Sens 63.46%, Spec 99.73%)**:
    - Captures microaneurysms (tiny 2-4px features) and intraretinal hemorrhages. The moderate sensitivity is driven by single isolated microaneurysms on tile edges, while specificity is near-perfect (99.73%).
 
-5. **Proliferative Channel Scarcity**:
-   - The low metrics on `prolif` directly reflect extreme ground-truth scarcity in public datasets (only 49 positive validation patches and 5,842 positive pixels total across 479 training images).
-   - Because specificity is $100.0\%$, it produces no false alarms. Any positive signal functions as a high-priority safety trigger in clinical deferral.
+5. **Proliferative Channel Scarcity & Heuristic Role**:
+   - The low metrics on `prolif` (0.83% sensitivity, 0.0163 Dice) directly reflect extreme ground-truth scarcity in public datasets (only 49 positive validation patches and 5,842 positive pixels total across 479 training images).
+   - High specificity is a byproduct of massive negative pixel dominance ($FP \approx 0$ because predictions are almost entirely zero). Model 1 cannot be relied upon as an autonomous neovascularization segmenter.
+   - Any non-trivial activation (>0.05% coverage) serves purely as a conservative heuristic warning trigger for referral escalation, while primary Grade 4 PDR detection rests on Model 2's holistic 7-channel classifier (which achieved 43/44 = 97.7% referral detection).

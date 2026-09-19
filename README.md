@@ -50,7 +50,7 @@ Visual attention maps extracted from the final convolutional feature layer of th
 | **Light Lesions (Exudates & CWS)** | **88.18%** | 98.91% | **0.4197** | **0.2655** | 655 / 2,215 |
 | **Proliferative (Neovascularization)\*** | 0.83% | **100.00%** | 0.0163 | 0.0082 | 49 / 925 |
 
-*\*Note: Proliferative lesion metrics reflect extreme public data scarcity (49 positive patches, 5,842 total pixels across dataset). With 100.0% specificity, it triggers clinical safety escalation without introducing false-positive noise into Model 2.*
+*\*Note: Proliferative channel metrics reflect extreme public data scarcity (49 positive patches, 5,842 total pixels across dataset). With near-zero sensitivity (0.83%), Model 1 is not an autonomous NV segmenter; any activation (>0.05% coverage) serves purely as a conservative heuristic trigger for safety escalation, while primary Grade 4 PDR detection rests on Model 2 (43 of 44 cases referred).*
 
 ### Why 5-Class Exact Accuracy vs. Binary Triage Matter
 * **The Soft Clinical Continuum:** In international screening guidelines (ICDR / WHO), distinguishing **Grade 0 (No DR)** from **Grade 1 (Mild NPDR)** hinges on identifying 1 or 2 isolated microaneurysms ($2\text{--}4$ pixels in width). Even experienced retinal specialists achieve only $60\%\text{--}70\%$ exact inter-grader agreement on borderline cases.
